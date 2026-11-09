@@ -6,16 +6,16 @@ struct NewProjectView: View {
     @ObservedObject var model: WorkspaceViewModel
     @Environment(\.dismiss) private var dismiss
 
-    @State private var family: DiscFamily
-    @State private var name = "Untitled Disc"
-    @State private var presetID: String
-    @State private var geometry: ProjectGeometry
-    @State private var invertMapping: Bool
-    @State private var projectDirectory: String
-    @State private var outputPath: String
-    @State private var usableText: String
-    @State private var customOutput = false
-    @State private var errorMessage: String?
+    @ViewState private var family: DiscFamily
+    @ViewState private var name = "Untitled Disc"
+    @ViewState private var presetID: String
+    @ViewState private var geometry: ProjectGeometry
+    @ViewState private var invertMapping: Bool
+    @ViewState private var projectDirectory: String
+    @ViewState private var outputPath: String
+    @ViewState private var usableText: String
+    @ViewState private var customOutput = false
+    @ViewState private var errorMessage: String?
 
     init(model: WorkspaceViewModel, initialFamily: DiscFamily) {
         self.model = model
@@ -35,9 +35,7 @@ struct NewProjectView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
-            Divider()
+        NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     familyPicker
@@ -46,85 +44,39 @@ struct NewProjectView: View {
                     outputCard
                     if let errorMessage {
                         Text(errorMessage)
-                            .font(.system(size: 11.5))
+                            .font(.callout)
                             .foregroundStyle(.red)
                             .padding(.horizontal, 2)
                     }
                 }
                 .padding(22)
             }
-            Divider()
-            footer
+            .navigationTitle("New Disc Project")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Create Project") { create() }
+                        .keyboardShortcut(.defaultAction)
+                        .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+            }
         }
         .frame(width: 760, height: 720)
         .background(Theme.pageBackground)
     }
 
-    private var header: some View {
-        HStack(alignment: .center, spacing: 12) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(Theme.accent.opacity(0.14))
-                Image(systemName: "plus.circle.fill")
-                    .font(.system(size: 20))
-                    .foregroundStyle(Theme.accent)
-            }
-            .frame(width: 38, height: 38)
-            VStack(alignment: .leading, spacing: 2) {
-                Text("New disc project")
-                    .font(.system(size: 17, weight: .bold, design: .rounded))
-                Text("The medium is fixed for the life of the project. Geometry can be changed later.")
-                    .font(.system(size: 11.5))
-                    .foregroundStyle(.secondary)
-            }
-            Spacer()
-        }
-        .padding(.horizontal, 22)
-        .padding(.vertical, 16)
-    }
-
     private var familyPicker: some View {
-        VStack(alignment: .leading, spacing: 9) {
-            SectionTitle(title: "Medium", subtitle: "Pick the physical disc family", icon: "opticaldisc")
-            HStack(spacing: 10) {
-                ForEach(DiscFamily.allCases) { candidate in
-                    Button {
-                        selectFamily(candidate)
-                    } label: {
-                        HStack(spacing: 9) {
-                            Image(systemName: candidate.systemImage)
-                                .font(.system(size: 16, weight: .medium))
-                            VStack(alignment: .leading, spacing: 1) {
-                                Text(candidate.label)
-                                    .font(.system(size: 12.5, weight: .semibold))
-                                Text(candidate.tagline)
-                                    .font(.system(size: 10))
-                                    .foregroundStyle(.secondary)
-                            }
-                            Spacer(minLength: 0)
-                            if family == candidate {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundStyle(Theme.accent)
-                            }
-                        }
-                        .padding(11)
-                        .frame(maxWidth: .infinity)
-                        .background(
-                            RoundedRectangle(cornerRadius: 11, style: .continuous)
-                                .fill(family == candidate ? Theme.accent.opacity(0.10) : Color.primary.opacity(0.035))
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 11, style: .continuous)
-                                .strokeBorder(
-                                    family == candidate ? Theme.accent.opacity(0.55) : Color.primary.opacity(0.07),
-                                    lineWidth: 1
-                                )
-                        )
-                    }
-                    .buttonStyle(.plain)
-                }
+        Picker("Disc medium", selection: Binding(
+            get: { family }, set: { selectFamily($0) }
+        )) {
+            ForEach(DiscFamily.allCases) { candidate in
+                Text(candidate.label).tag(candidate)
             }
         }
+        .pickerStyle(.segmented)
+        .help("The medium is fixed when the project is created.")
     }
 
     private var detailsCard: some View {
@@ -142,9 +94,9 @@ struct NewProjectView: View {
                 HStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Disc preset")
-                            .font(.system(size: 10, weight: .medium))
+                            .font(.system(size: 11, weight: .medium))
                             .foregroundStyle(.secondary)
-                        Picker("", selection: $presetID) {
+                        Picker("Disc preset", selection: $presetID) {
                             ForEach(PresetCatalog.presets(for: family)) { preset in
                                 Text(preset.name).tag(preset.id)
                             }
@@ -163,13 +115,13 @@ struct NewProjectView: View {
                     if family == .bd {
                         Toggle("Invert 3T/6T mapping", isOn: $invertMapping)
                             .toggleStyle(.checkbox)
-                            .font(.system(size: 11.5))
+                            .font(.callout)
                     }
                 }
 
                 if let preset = PresetCatalog.preset(id: presetID) {
                     Text(preset.detail)
-                        .font(.system(size: 10.5))
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -192,7 +144,7 @@ struct NewProjectView: View {
                 HStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 4) {
                         fieldLabel("Total sectors")
-                        TextField("", value: $geometry.sectors, format: .number.grouping(.never))
+                        TextField("Total sectors", value: $geometry.sectors, format: .number.grouping(.never))
                             .textFieldStyle(.roundedBorder)
                     }
                     VStack(alignment: .leading, spacing: 4) {
@@ -207,7 +159,7 @@ struct NewProjectView: View {
                 Text(family == .bd
                      ? "BD-R geometry must be 32-sector aligned and no larger than 12,219,392 sectors."
                      : "Usable sectors limit the written area; leave blank to write the full geometry.")
-                    .font(.system(size: 10.5))
+                    .font(.caption)
                     .foregroundStyle(.secondary)
             }
         }
@@ -220,17 +172,17 @@ struct NewProjectView: View {
                 HStack(spacing: 8) {
                     VStack(alignment: .leading, spacing: 4) {
                         fieldLabel("Project folder")
-                        TextField("", text: $projectDirectory)
+                        TextField("Project folder", text: $projectDirectory)
                             .textFieldStyle(.roundedBorder)
                     }
                     Button("Choose…") { chooseProjectDirectory() }
-                        .buttonStyle(SecondaryActionButtonStyle())
+                        .buttonStyle(.bordered)
                         .padding(.top, 14)
                 }
                 HStack(spacing: 8) {
                     VStack(alignment: .leading, spacing: 4) {
                         fieldLabel("Output file")
-                        TextField("", text: $outputPath)
+                        TextField("Output file", text: $outputPath)
                             .textFieldStyle(.roundedBorder)
                             .onChange(of: outputPath) { _, _ in customOutput = true }
                     }
@@ -239,11 +191,11 @@ struct NewProjectView: View {
                             outputPath = path
                         }
                     }
-                    .buttonStyle(SecondaryActionButtonStyle())
+                    .buttonStyle(.bordered)
                     .padding(.top, 14)
                 }
                 Text(projectURL.path)
-                    .font(.system(size: 10, design: .monospaced))
+                    .font(.system(size: 11, design: .monospaced))
                     .foregroundStyle(.tertiary)
                     .lineLimit(1)
                     .truncationMode(.middle)
@@ -251,38 +203,16 @@ struct NewProjectView: View {
         }
     }
 
-    private var footer: some View {
-        HStack {
-            if let preset = PresetCatalog.preset(id: presetID) {
-                Text(preset.name)
-                    .font(.system(size: 10.5))
-                    .foregroundStyle(.secondary)
-            }
-            Spacer()
-            Button("Cancel") { dismiss() }
-                .keyboardShortcut(.cancelAction)
-            Button {
-                create()
-            } label: {
-                Label("Create project", systemImage: "arrow.right.circle.fill")
-            }
-            .buttonStyle(PrimaryActionButtonStyle())
-            .keyboardShortcut(.defaultAction)
-        }
-        .padding(.horizontal, 22)
-        .padding(.vertical, 14)
-    }
-
     private func fieldLabel(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: 10, weight: .medium))
+            .font(.system(size: 11, weight: .medium))
             .foregroundStyle(.secondary)
     }
 
     private func numberField(_ title: String, value: Binding<Double>, unit: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             fieldLabel("\(title) (\(unit))")
-            TextField("", value: value, format: .number.precision(.fractionLength(0...6)))
+            TextField("\(title) (\(unit))", value: value, format: .number.precision(.fractionLength(0...6)))
                 .textFieldStyle(.roundedBorder)
         }
     }

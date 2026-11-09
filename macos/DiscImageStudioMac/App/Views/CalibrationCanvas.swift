@@ -10,7 +10,7 @@ struct CalibrationCanvas: View {
     var showMeasurements = false
     var onAdd: (CGPoint) -> Void
 
-    @State private var zoom: CGFloat = 1
+    @ViewState private var zoom: CGFloat = 1
 
     private var segmentColors: [Color] {
         [Theme.accent, Theme.mint, Theme.amber, Color(red: 0.9, green: 0.45, blue: 0.75), Color(red: 0.6, green: 0.55, blue: 1)]
@@ -20,13 +20,13 @@ struct CalibrationCanvas: View {
         VStack(spacing: 0) {
             HStack(spacing: 8) {
                 Text("Click to place a point")
-                    .font(.system(size: 10))
+                    .font(.caption)
                     .foregroundStyle(.secondary)
                 Spacer()
                 Text("Zoom")
-                    .font(.system(size: 9.5))
+                    .font(.caption)
                     .foregroundStyle(.tertiary)
-                Picker("", selection: $zoom) {
+                Picker("Canvas zoom", selection: $zoom) {
                     Text("Fit").tag(CGFloat(1))
                     Text("2×").tag(CGFloat(2))
                     Text("4×").tag(CGFloat(4))

@@ -5,8 +5,8 @@ import SwiftUI
 struct SettingsView: View {
     @ObservedObject var model: WorkspaceViewModel
     @ObservedObject private var settings: AppSettings
-    @State private var isTesting = false
-    @State private var testResult: String?
+    @ViewState private var isTesting = false
+    @ViewState private var testResult: String?
 
     init(model: WorkspaceViewModel) {
         self.model = model
@@ -26,118 +26,69 @@ struct SettingsView: View {
     }
 
     private var engineTab: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                Card {
-                    VStack(alignment: .leading, spacing: 12) {
-                        SectionTitle(
-                            title: "Disc engine",
-                            subtitle: "The SwiftUI app calls the cross-platform .NET CLI",
-                            icon: "terminal"
-                        )
-                        Text(model.cliDetection)
-                            .font(.system(size: 10, design: .monospaced))
-                            .foregroundStyle(.secondary)
-                            .textSelection(.enabled)
-                            .fixedSize(horizontal: false, vertical: true)
-
-                        HStack(spacing: 8) {
-                            TextField("Custom CLI path (optional)", text: $settings.cliPath)
-                                .textFieldStyle(.roundedBorder)
-                                .font(.system(size: 10.5, design: .monospaced))
-                            Button("Choose…") { chooseCLI() }
-                                .buttonStyle(SecondaryActionButtonStyle())
-                        }
-
-                        HStack(spacing: 8) {
-                            Button {
-                                testEngine()
-                            } label: {
-                                Label(isTesting ? "Testing…" : "Test engine", systemImage: "play.circle")
-                            }
-                            .buttonStyle(SecondaryActionButtonStyle())
-                            .disabled(isTesting)
-
-                            Button("Auto-detect") {
-                                settings.resetCLIPath()
-                                model.refreshCLIDetection()
-                                testResult = nil
-                            }
-                            .buttonStyle(SecondaryActionButtonStyle())
-
-                            if let testResult {
-                                Text(testResult)
-                                    .font(.system(size: 10))
-                                    .foregroundStyle(testResult.hasPrefix("OK") ? Theme.mint : .red)
-                                    .lineLimit(2)
-                            }
-                            Spacer()
-                        }
-
-                        Divider().opacity(0.5)
-
-                        Text("Build the engine from the repository with:")
-                            .font(.system(size: 10.5))
-                            .foregroundStyle(.secondary)
-                        Text("dotnet build src/DiscImageStudio.Cli/DiscImageStudio.Cli.csproj -c Release")
-                            .font(.system(size: 10, design: .monospaced))
-                            .textSelection(.enabled)
-                            .padding(8)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 7))
-                        Text("The app also finds a bundled `Contents/Resources/cli/disc-image-studio`, the developer build under `src/DiscImageStudio.Cli/bin`, a Homebrew install, or a path on `PATH`.")
-                            .font(.system(size: 10))
-                            .foregroundStyle(.tertiary)
-                            .fixedSize(horizontal: false, vertical: true)
+        Form {
+            Section("Disc Engine") {
+                LabeledContent("Detected engine") {
+                    Text(model.cliDetection)
+                        .font(.callout.monospaced())
+                        .textSelection(.enabled)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                LabeledContent("CLI path") {
+                    HStack {
+                        TextField("Automatic", text: $settings.cliPath)
+                            .accessibilityLabel("Custom CLI path")
+                        Button("Choose…") { chooseCLI() }
                     }
                 }
+                HStack {
+                    Button(isTesting ? "Testing…" : "Test Engine") { testEngine() }
+                        .disabled(isTesting)
+                    Button("Auto-detect") {
+                        settings.resetCLIPath()
+                        model.refreshCLIDetection()
+                        testResult = nil
+                    }
+                    if isTesting { ProgressView().controlSize(.small) }
+                }
+                if let testResult {
+                    Text(testResult).textSelection(.enabled)
+                }
             }
-            .padding(18)
+            Section("Engine Setup") {
+                Text("Choose an executable or a .NET CLI assembly, or let the app locate a bundled engine, developer build, Homebrew install or executable on PATH.")
+                    .foregroundStyle(.secondary)
+                Text("dotnet build src/DiscImageStudio.Cli/DiscImageStudio.Cli.csproj -c Release")
+                    .font(.callout.monospaced())
+                    .textSelection(.enabled)
+            }
+        }
+        .formStyle(.grouped)
+        .onChange(of: settings.cliPath) { _, _ in
+            model.refreshCLIDetection()
+            testResult = nil
         }
     }
 
     private var defaultsTab: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                Card {
-                    VStack(alignment: .leading, spacing: 12) {
-                        SectionTitle(title: "Projects", subtitle: "Default location for new projects", icon: "folder")
-                        HStack(spacing: 8) {
-                            TextField("Projects folder", text: $settings.defaultProjectsDirectory)
-                                .textFieldStyle(.roundedBorder)
-                                .font(.system(size: 10.5, design: .monospaced))
-                            Button("Choose…") { chooseProjectsFolder() }
-                                .buttonStyle(SecondaryActionButtonStyle())
-                        }
-                    }
-                }
-
-                Card {
-                    VStack(alignment: .leading, spacing: 12) {
-                        SectionTitle(title: "Preview", subtitle: "Default projection size", icon: "eye")
-                        Picker("Preview size", selection: $settings.previewSize) {
-                            Text("512 px").tag(512)
-                            Text("1024 px").tag(1024)
-                            Text("1600 px").tag(1600)
-                            Text("2048 px").tag(2048)
-                            Text("4096 px").tag(4096)
-                        }
-                        .pickerStyle(.segmented)
-                    }
-                }
-
-                Card {
-                    VStack(alignment: .leading, spacing: 8) {
-                        SectionTitle(title: "Native renderer", subtitle: "What runs in Swift", icon: "swift")
-                        Text("The layer compositor, disc mask, tone preview, project documents and all UI are native Swift/SwiftUI. The physical CD/DVD/BD encoders remain the mature .NET engine from DiscImageStudio.")
-                            .font(.system(size: 10.5))
-                            .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
+        Form {
+            Section("Projects") {
+                LabeledContent("Default folder") {
+                    HStack {
+                        TextField("Projects folder", text: $settings.defaultProjectsDirectory)
+                        Button("Choose…") { chooseProjectsFolder() }
                     }
                 }
             }
-            .padding(18)
+            Section("Preview") {
+                Picker("Default size", selection: $settings.previewSize) {
+                    ForEach([512, 1024, 1600, 2048, 4096], id: \.self) { size in
+                        Text("\(size) px").tag(size)
+                    }
+                }
+            }
         }
+        .formStyle(.grouped)
     }
 
     private var aboutTab: some View {
@@ -148,7 +99,7 @@ struct SettingsView: View {
             Text("Disc Image Studio for macOS")
                 .font(.system(size: 20, weight: .bold, design: .rounded))
             Text("Version 1.0.0 · Native SwiftUI frontend")
-                .font(.system(size: 11.5))
+                .font(.callout)
                 .foregroundStyle(.secondary)
             Text("A native macOS workspace for DiscImageStudio. Design, preview and export CD, DVD and single-layer BD-R visible-image discs using the upstream physical engine.")
                 .font(.system(size: 12))
@@ -161,9 +112,9 @@ struct SettingsView: View {
                     .foregroundStyle(.tertiary)
                 Link("License (GPL-3.0-or-later)", destination: URL(string: "https://www.gnu.org/licenses/gpl-3.0.html")!)
             }
-            .font(.system(size: 11))
-            Text("Disc burning is not exposed in the native frontend; generate an image and use your preferred macOS burning tool.")
-                .font(.system(size: 10))
+            .font(.caption)
+            Text("Use the Burn workspace to write generated images with a compatible optical drive.")
+                .font(.caption)
                 .foregroundStyle(.tertiary)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 420)
@@ -220,21 +171,10 @@ struct AboutView: View {
 
     var body: some View {
         VStack(spacing: 18) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [Theme.accent, Theme.accentDeep],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                Image(systemName: "opticaldiscdrive.fill")
-                    .font(.system(size: 48, weight: .medium))
-                    .foregroundStyle(.white)
-            }
-            .frame(width: 96, height: 96)
-            .shadow(color: Theme.accent.opacity(0.4), radius: 18, y: 8)
+            Image(systemName: "opticaldiscdrive.fill")
+                .font(.system(size: 64, weight: .light))
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
 
             VStack(spacing: 4) {
                 Text("Disc Image Studio")
@@ -261,10 +201,10 @@ struct AboutView: View {
                 Link("GitHub", destination: URL(string: "https://github.com/JiaFeiMiao-K-Cat/DiscImageStudio")!)
                 Link("License", destination: URL(string: "https://www.gnu.org/licenses/gpl-3.0.html")!)
             }
-            .font(.system(size: 11.5))
+            .font(.callout)
 
             Button("Close") { dismiss() }
-                .buttonStyle(PrimaryActionButtonStyle())
+                .buttonStyle(.borderedProminent)
                 .keyboardShortcut(.defaultAction)
                 .padding(.top, 4)
         }

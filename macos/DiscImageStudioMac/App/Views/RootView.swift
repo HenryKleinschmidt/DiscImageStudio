@@ -9,13 +9,10 @@ struct RootView: View {
             Theme.pageBackground.ignoresSafeArea()
             if model.hasProject {
                 ProjectWorkspaceView(model: model)
-                    .transition(.opacity)
             } else {
                 HomeView(model: model)
-                    .transition(.opacity)
             }
         }
-        .animation(.easeInOut(duration: 0.18), value: model.hasProject)
         .sheet(isPresented: $model.isNewProjectPresented) {
             NewProjectView(model: model, initialFamily: model.newProjectFamily)
         }

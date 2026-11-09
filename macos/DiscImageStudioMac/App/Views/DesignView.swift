@@ -11,10 +11,11 @@ struct DesignView: View {
                 .frame(minWidth: 220, idealWidth: Theme.layerPanelWidth, maxWidth: 340)
             DesignCanvasView(model: model)
                 .frame(minWidth: 420, maxWidth: .infinity, minHeight: 420)
-            DesignInspector(model: model)
-                .frame(minWidth: 280, idealWidth: Theme.inspectorWidth, maxWidth: 390)
         }
-        .padding(12)
+        .inspector(isPresented: $model.isInspectorPresented) {
+            DesignInspector(model: model)
+                .inspectorColumnWidth(min: 280, ideal: 312, max: 390)
+        }
     }
 }
 
@@ -22,7 +23,7 @@ struct DesignView: View {
 
 struct LayerPanel: View {
     @ObservedObject var model: WorkspaceViewModel
-    @State private var isDropTarget = false
+    @ViewState private var isDropTarget = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -36,10 +37,10 @@ struct LayerPanel: View {
                         .font(.system(size: 11, weight: .bold))
                         .padding(6)
                 }
-                .buttonStyle(.plain)
-                .background(Circle().fill(Theme.accent.opacity(0.14)))
+                .buttonStyle(.borderless)
                 .foregroundStyle(Theme.accent)
                 .help("Import images")
+                .accessibilityLabel("Import images")
             }
             .padding(14)
 
@@ -53,10 +54,10 @@ struct LayerPanel: View {
                     Text("Drop images here")
                         .font(.system(size: 12, weight: .medium))
                     Text("PNG, JPEG, BMP, GIF, TIFF or HEIC")
-                        .font(.system(size: 10))
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                     Button("Import…") { model.chooseImages() }
-                        .buttonStyle(SecondaryActionButtonStyle())
+                        .buttonStyle(.bordered)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding(20)
@@ -69,14 +70,13 @@ struct LayerPanel: View {
                         .padding(12)
                 )
             } else {
-                ScrollView {
-                    LazyVStack(spacing: 5) {
-                        ForEach(model.state?.layers ?? []) { layer in
-                            layerRow(layer)
-                        }
+                List(selection: $model.selectedLayerID) {
+                    ForEach(model.state?.layers ?? []) { layer in
+                        layerRow(layer).tag(layer.id)
                     }
-                    .padding(9)
+                    .onMove(perform: model.moveLayers)
                 }
+                .listStyle(.inset)
             }
 
             Divider().opacity(0.5)
@@ -87,14 +87,14 @@ struct LayerPanel: View {
                 } label: {
                     Label("Add", systemImage: "plus")
                 }
-                .buttonStyle(SecondaryActionButtonStyle())
+                .buttonStyle(.bordered)
 
                 Button {
                     model.removeSelectedLayer()
                 } label: {
                     Label("Remove", systemImage: "trash")
                 }
-                .buttonStyle(SecondaryActionButtonStyle())
+                .buttonStyle(.bordered)
                 .disabled(model.selectedLayerID == nil)
 
                 Spacer()
@@ -104,32 +104,29 @@ struct LayerPanel: View {
                 } label: {
                     Image(systemName: "chevron.up")
                 }
-                .buttonStyle(.plain)
-                .padding(6)
+                .buttonStyle(.borderless)
+                .frame(minWidth: 24, minHeight: 24)
                 .disabled(!canMoveUp)
+                .accessibilityLabel("Move layer up")
+                .help("Move selected layer up")
 
                 Button {
                     moveSelected(up: false)
                 } label: {
                     Image(systemName: "chevron.down")
                 }
-                .buttonStyle(.plain)
-                .padding(6)
+                .buttonStyle(.borderless)
+                .frame(minWidth: 24, minHeight: 24)
                 .disabled(!canMoveDown)
+                .accessibilityLabel("Move layer down")
+                .help("Move selected layer down")
             }
             .padding(10)
         }
-        .background(
-            RoundedRectangle(cornerRadius: Theme.panelRadius, style: .continuous)
-                .fill(Color(nsColor: .controlBackgroundColor).opacity(0.7))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: Theme.panelRadius, style: .continuous)
-                .strokeBorder(
-                    isDropTarget ? Theme.accent.opacity(0.8) : Color.primary.opacity(0.07),
-                    lineWidth: 1
-                )
-        )
+        .background(Color(nsColor: .controlBackgroundColor))
+        .overlay {
+            if isDropTarget { Rectangle().strokeBorder(Theme.accent, lineWidth: 2) }
+        }
         .dropDestination(for: URL.self) { urls, _ in
             model.importImages(from: urls)
             return true
@@ -149,7 +146,7 @@ struct LayerPanel: View {
                     .font(.system(size: 11.5, weight: selected ? .semibold : .regular))
                     .lineLimit(1)
                 Text(String(format: "%.0f%% · %.1f, %.1f mm", layer.scale * 100, layer.translateXMm, layer.translateYMm))
-                    .font(.system(size: 9.5, design: .monospaced))
+                    .font(.system(size: 11, design: .monospaced))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
@@ -159,26 +156,17 @@ struct LayerPanel: View {
                 model.toggleVisibility(layer.id)
             } label: {
                 Image(systemName: layer.visible ? "eye" : "eye.slash")
-                    .font(.system(size: 10))
+                    .font(.caption)
                     .foregroundStyle(layer.visible ? .secondary : .tertiary)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderless)
+            .frame(minWidth: 24, minHeight: 24)
             .help(layer.visible ? "Hide layer" : "Show layer")
+            .accessibilityLabel("\(layer.visible ? "Hide" : "Show") \(layer.name)")
         }
         .padding(.horizontal, 7)
         .padding(.vertical, 6)
-        .background(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(selected ? Theme.accent.opacity(0.16) : Color.clear)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .strokeBorder(selected ? Theme.accent.opacity(0.40) : Color.clear, lineWidth: 1)
-        )
-        .contentShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-        .onTapGesture {
-            model.selectedLayerID = layer.id
-        }
+        .contentShape(Rectangle())
         .contextMenu {
             Button(layer.visible ? "Hide" : "Show") { model.toggleVisibility(layer.id) }
             Button("Move to Top") { model.moveLayer(layer.id, before: nil) }
@@ -221,7 +209,7 @@ struct LayerPanel: View {
 
 struct LocalThumbnail: View {
     let path: String
-    @State private var image: NSImage?
+    @ViewState private var image: NSImage?
 
     var body: some View {
         ZStack {

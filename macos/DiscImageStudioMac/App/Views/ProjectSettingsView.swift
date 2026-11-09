@@ -5,12 +5,12 @@ struct ProjectSettingsView: View {
     @ObservedObject var model: WorkspaceViewModel
     @Environment(\.dismiss) private var dismiss
 
-    @State private var name: String
-    @State private var geometry: ProjectGeometry
-    @State private var presetID: String
-    @State private var invertMapping: Bool
-    @State private var usableText: String
-    @State private var errorMessage: String?
+    @ViewState private var name: String
+    @ViewState private var geometry: ProjectGeometry
+    @ViewState private var presetID: String
+    @ViewState private var invertMapping: Bool
+    @ViewState private var usableText: String
+    @ViewState private var errorMessage: String?
 
     init(model: WorkspaceViewModel) {
         self.model = model
@@ -28,9 +28,7 @@ struct ProjectSettingsView: View {
     private var family: DiscFamily { model.family }
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
-            Divider()
+        NavigationStack {
             ScrollView {
                 VStack(spacing: 14) {
                     Card {
@@ -40,12 +38,12 @@ struct ProjectSettingsView: View {
                                 .textFieldStyle(.roundedBorder)
                             HStack {
                                 Text("Medium")
-                                    .font(.system(size: 10, weight: .medium))
+                                    .font(.system(size: 11, weight: .medium))
                                     .foregroundStyle(.secondary)
                                 Spacer()
                                 FamilyBadge(family: family)
                                 Text("fixed for this project")
-                                    .font(.system(size: 10))
+                                    .font(.caption)
                                     .foregroundStyle(.tertiary)
                             }
                         }
@@ -54,7 +52,7 @@ struct ProjectSettingsView: View {
                     Card {
                         VStack(alignment: .leading, spacing: 12) {
                             SectionTitle(title: "Capture preset", subtitle: "Applies geometry only", icon: "opticaldisc")
-                            Picker("", selection: $presetID) {
+                            Picker("Capture preset", selection: $presetID) {
                                 Text("Custom geometry").tag("")
                                 ForEach(PresetCatalog.presets(for: family)) { preset in
                                     Text(preset.name).tag(preset.id)
@@ -69,7 +67,7 @@ struct ProjectSettingsView: View {
                             }
                             if let preset = PresetCatalog.preset(id: presetID), preset.family == family {
                                 Text(preset.detail)
-                                    .font(.system(size: 10))
+                                    .font(.caption)
                                     .foregroundStyle(.secondary)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
@@ -86,7 +84,7 @@ struct ProjectSettingsView: View {
                             HStack(spacing: 12) {
                                 VStack(alignment: .leading, spacing: 4) {
                                     fieldLabel("Total sectors")
-                                    TextField("", value: $geometry.sectors, format: .number.grouping(.never))
+                                    TextField("Total sectors", value: $geometry.sectors, format: .number.grouping(.never))
                                         .textFieldStyle(.roundedBorder)
                                         .onChange(of: geometry.sectors) { _, _ in presetID = "" }
                                 }
@@ -107,7 +105,7 @@ struct ProjectSettingsView: View {
                             labeledField("Pitch cubic", value: $geometry.pitchCubic)
                             if family == .bd {
                                 Toggle("Invert 3T/6T mapping", isOn: $invertMapping)
-                                    .toggleStyle(.switch)
+                                    .toggleStyle(.checkbox)
                                     .controlSize(.small)
                             }
                         }
@@ -115,69 +113,39 @@ struct ProjectSettingsView: View {
 
                     if let errorMessage {
                         Text(errorMessage)
-                            .font(.system(size: 11.5))
+                            .font(.callout)
                             .foregroundStyle(.red)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
                 .padding(20)
             }
-            Divider()
-            HStack {
-                if let projectURL = model.projectURL {
-                    Text(projectURL.path)
-                        .font(.system(size: 9.5, design: .monospaced))
-                        .foregroundStyle(.tertiary)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
+            .navigationTitle("Project Settings")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
                 }
-                Spacer()
-                Button("Cancel") { dismiss() }
-                    .keyboardShortcut(.cancelAction)
-                Button("Save changes") { save() }
-                    .buttonStyle(PrimaryActionButtonStyle())
-                    .keyboardShortcut(.defaultAction)
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save Changes") { save() }
+                        .keyboardShortcut(.defaultAction)
+                        .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 13)
         }
         .frame(width: 660, height: 700)
         .background(Theme.pageBackground)
     }
 
-    private var header: some View {
-        HStack(spacing: 12) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(Theme.accent.opacity(0.14))
-                Image(systemName: "slider.horizontal.3")
-                    .font(.system(size: 18))
-                    .foregroundStyle(Theme.accent)
-            }
-            .frame(width: 38, height: 38)
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Project settings")
-                    .font(.system(size: 17, weight: .bold, design: .rounded))
-                Text("Geometry is validated against the engine's \(family.label) constraints.")
-                    .font(.system(size: 11.5))
-                    .foregroundStyle(.secondary)
-            }
-            Spacer()
-        }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 15)
-    }
-
     private func fieldLabel(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: 10, weight: .medium))
+            .font(.system(size: 11, weight: .medium))
             .foregroundStyle(.secondary)
     }
 
     private func labeledField(_ title: String, value: Binding<Double>) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             fieldLabel(title)
-            TextField("", value: value, format: .number.precision(.fractionLength(0...7)))
+            TextField(title, value: value, format: .number.precision(.fractionLength(0...7)))
                 .textFieldStyle(.roundedBorder)
                 .onChange(of: value.wrappedValue) { _, _ in
                     if !presetID.isEmpty { presetID = "" }

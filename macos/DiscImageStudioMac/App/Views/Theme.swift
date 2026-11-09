@@ -1,44 +1,31 @@
 import DiscImageStudioKit
 import SwiftUI
 
+// Select the property wrapper explicitly: newer SDKs also export a State macro.
+// The wrapper retains the macOS 14 storage and Binding behavior in Swift 5 mode.
+typealias ViewState<Value> = SwiftUI.State<Value>
+
 enum Theme {
-    static let accent = Color(red: 0.30, green: 0.55, blue: 1.0)
-    static let accentDeep = Color(red: 0.16, green: 0.32, blue: 0.85)
-    static let mint = Color(red: 0.22, green: 0.78, blue: 0.68)
-    static let amber = Color(red: 1.0, green: 0.68, blue: 0.24)
-    static let cardRadius: CGFloat = 16
+    static let accent = Color.accentColor
+    static let mint = Color.green
+    static let amber = Color.orange
     static let panelRadius: CGFloat = 12
-    static let pagePadding: CGFloat = 22
-    static let sidebarWidth: CGFloat = 232
-    static let inspectorWidth: CGFloat = 312
     static let layerPanelWidth: CGFloat = 252
 
-    static let pageBackground = LinearGradient(
-        colors: [
-            Color(nsColor: .windowBackgroundColor),
-            Color(nsColor: .underPageBackgroundColor).opacity(0.55)
-        ],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-    )
+    static let pageBackground = Color(nsColor: .windowBackgroundColor)
 }
 
+/// Native grouping keeps controls legible in both appearances and follows system contrast.
 struct Card<Content: View>: View {
     var padding: CGFloat = 16
     @ViewBuilder var content: () -> Content
 
     var body: some View {
-        content()
-            .padding(padding)
-            .background(
-                RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous)
-                    .fill(Color(nsColor: .controlBackgroundColor).opacity(0.82))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous)
-                    .strokeBorder(Color.primary.opacity(0.08), lineWidth: 1)
-            )
-            .shadow(color: .black.opacity(0.06), radius: 14, y: 6)
+        GroupBox {
+            content()
+                .padding(max(0, padding - 8))
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
     }
 }
 
@@ -59,7 +46,7 @@ struct SectionTitle: View {
                     .font(.system(size: 13, weight: .semibold))
                 if let subtitle {
                     Text(subtitle)
-                        .font(.system(size: 11))
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -75,13 +62,10 @@ struct FamilyBadge: View {
     var body: some View {
         HStack(spacing: 5) {
             Image(systemName: family.systemImage)
-                .font(.system(size: compact ? 9 : 10, weight: .semibold))
+                .font(.caption)
             Text(family.shortLabel)
-                .font(.system(size: compact ? 9 : 10, weight: .bold, design: .rounded))
+                .font(.caption.weight(.medium))
         }
-        .padding(.horizontal, compact ? 7 : 9)
-        .padding(.vertical, compact ? 3 : 4)
-        .background(Theme.accent.opacity(0.14), in: Capsule())
         .foregroundStyle(Theme.accent)
     }
 }
@@ -92,54 +76,8 @@ struct Tag: View {
 
     var body: some View {
         Text(text)
-            .font(.system(size: 10, weight: .semibold))
-            .padding(.horizontal, 7)
-            .padding(.vertical, 3)
-            .background(color.opacity(0.12), in: Capsule())
+            .font(.caption.weight(.semibold))
             .foregroundStyle(color)
-    }
-}
-
-struct PrimaryActionButtonStyle: ButtonStyle {
-    var tint: Color = Theme.accent
-    @Environment(\.isEnabled) private var isEnabled
-
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(size: 12, weight: .semibold))
-            .foregroundStyle(.white)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 8)
-            .background(
-                LinearGradient(
-                    colors: [tint, tint.opacity(0.78)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                ),
-                in: RoundedRectangle(cornerRadius: 9, style: .continuous)
-            )
-            .shadow(color: tint.opacity(configuration.isPressed ? 0.1 : 0.28), radius: 8, y: 4)
-            .opacity(isEnabled ? (configuration.isPressed ? 0.82 : 1) : 0.42)
-    }
-}
-
-struct SecondaryActionButtonStyle: ButtonStyle {
-    @Environment(\.isEnabled) private var isEnabled
-
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(size: 12, weight: .medium))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 7)
-            .background(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(Color.primary.opacity(configuration.isPressed ? 0.10 : 0.055))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .strokeBorder(Color.primary.opacity(0.08), lineWidth: 1)
-            )
-            .opacity(isEnabled ? 1 : 0.45)
     }
 }
 
@@ -164,7 +102,7 @@ struct EmptyStateView: View {
                 .frame(maxWidth: 320)
             if let actionTitle, let action {
                 Button(actionTitle, action: action)
-                    .buttonStyle(PrimaryActionButtonStyle())
+                    .buttonStyle(.borderedProminent)
                     .padding(.top, 4)
             }
         }
@@ -181,7 +119,7 @@ struct LabeledValue: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(label)
-                .font(.system(size: 10, weight: .medium))
+                .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(.secondary)
                 .textCase(.uppercase)
             Text(value)

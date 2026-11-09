@@ -18,7 +18,7 @@ struct DesignInspector: View {
                             Text("Select a layer")
                                 .font(.system(size: 12, weight: .semibold))
                             Text("Choose a row on the left to edit its position, rotation and scale.")
-                                .font(.system(size: 10.5))
+                                .font(.caption)
                                 .foregroundStyle(.secondary)
                                 .multilineTextAlignment(.center)
                         }
@@ -45,10 +45,12 @@ struct DesignInspector: View {
                         model.removeSelectedLayer()
                     } label: {
                         Image(systemName: "trash")
-                            .font(.system(size: 10))
+                            .font(.caption)
                     }
                     .buttonStyle(.plain)
                     .foregroundStyle(.secondary)
+                    .accessibilityLabel("Remove selected layer")
+                    .help("Remove selected layer")
                 }
 
                 TextField("Layer name", text: model.layerBinding(layer.id, \.name, fallback: layer.name))
@@ -86,7 +88,7 @@ struct DesignInspector: View {
                             $0.translateYMm = 0
                         }
                     }
-                    .buttonStyle(SecondaryActionButtonStyle())
+                    .buttonStyle(.bordered)
                     Button("Reset transform") {
                         model.updateLayer(layer.id) {
                             $0.translateXMm = 0
@@ -95,7 +97,7 @@ struct DesignInspector: View {
                             $0.scale = 1
                         }
                     }
-                    .buttonStyle(SecondaryActionButtonStyle())
+                    .buttonStyle(.bordered)
                 }
             }
         }
@@ -151,11 +153,11 @@ struct DesignInspector: View {
 
                 HStack {
                     Text("Palette")
-                        .font(.system(size: 10, weight: .medium))
+                        .font(.system(size: 11, weight: .medium))
                         .foregroundStyle(.secondary)
                     Spacer()
                     if model.family == .cd {
-                        Picker("", selection: model.projectBinding(\.tone.levels, fallback: 2)) {
+                        Picker("Tone palette", selection: model.projectBinding(\.tone.levels, fallback: 2)) {
                             Text("2 levels").tag(2)
                             Text("4 levels").tag(4)
                         }
@@ -164,7 +166,7 @@ struct DesignInspector: View {
                         .frame(width: 150)
                     } else {
                         Text("2 levels (fixed)")
-                            .font(.system(size: 10.5))
+                            .font(.caption)
                             .foregroundStyle(.tertiary)
                     }
                 }
@@ -180,23 +182,23 @@ struct DesignInspector: View {
                     "sRGB linearization",
                     isOn: model.projectBinding(\.tone.srgbLinearization, fallback: false)
                 )
-                .toggleStyle(.switch)
+                .toggleStyle(.checkbox)
                 .controlSize(.small)
-                .font(.system(size: 11))
+                .font(.caption)
 
                 if model.family == .bd {
                     Toggle(
                         "Invert 3T/6T mapping",
                         isOn: model.projectBinding(\.invertMapping, fallback: false)
                     )
-                    .toggleStyle(.switch)
+                    .toggleStyle(.checkbox)
                     .controlSize(.small)
-                    .font(.system(size: 11))
+                    .font(.caption)
                 }
 
                 HStack {
                     Text(model.state?.tone.summary ?? "")
-                        .font(.system(size: 9.5))
+                        .font(.caption)
                         .foregroundStyle(.tertiary)
                         .lineLimit(1)
                     Spacer()
@@ -204,7 +206,7 @@ struct DesignInspector: View {
                         model.apply { $0.tone = .photo }
                     }
                     .buttonStyle(.plain)
-                    .font(.system(size: 10, weight: .medium))
+                    .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(Theme.accent)
                 }
             }
@@ -222,7 +224,7 @@ struct DesignInspector: View {
                         text: model.projectBinding(\.outputs.dataDirectory, fallback: "")
                     )
                     .textFieldStyle(.roundedBorder)
-                    .font(.system(size: 10.5, design: .monospaced))
+                    .font(.system(size: 11, design: .monospaced))
                     Button {
                         if let path = model.chooseDataDirectory() {
                             model.apply { $0.outputs.dataDirectory = path }
@@ -239,7 +241,7 @@ struct DesignInspector: View {
                         text: model.projectBinding(\.outputs.volumeLabel, fallback: "DISC_IMAGE")
                     )
                     .textFieldStyle(.roundedBorder)
-                    .font(.system(size: 10.5, design: .monospaced))
+                    .font(.system(size: 11, design: .monospaced))
 
                     Picker(
                         "File placement",
@@ -249,10 +251,10 @@ struct DesignInspector: View {
                         Text("Outer ring").tag(true)
                     }
                     .pickerStyle(.segmented)
-                    .font(.system(size: 10.5))
+                    .font(.caption)
 
                     Text("Files are copied by the engine at generation time; the design never includes them.")
-                        .font(.system(size: 9.5))
+                        .font(.caption)
                         .foregroundStyle(.tertiary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -281,7 +283,7 @@ struct DesignInspector: View {
                     } label: {
                         Label("Edit geometry & preset", systemImage: "slider.horizontal.3")
                     }
-                    .buttonStyle(SecondaryActionButtonStyle())
+                    .buttonStyle(.bordered)
                 }
             }
         }
@@ -298,14 +300,16 @@ struct SliderRow: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(title)
-                    .font(.system(size: 10, weight: .medium))
+                    .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(.secondary)
                 Spacer()
                 Text(display(value))
-                    .font(.system(size: 10, design: .monospaced))
+                    .font(.system(size: 11, design: .monospaced))
                     .foregroundStyle(.primary)
             }
-            Slider(value: $value, in: range)
+            Slider(value: $value, in: range) { Text(title) }
+                .labelsHidden()
+                .accessibilityValue(display(value))
                 .controlSize(.small)
         }
     }

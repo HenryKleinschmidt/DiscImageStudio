@@ -80,6 +80,7 @@ public final class WorkspaceViewModel: ObservableObject {
     private var exportTask: Task<Void, Never>?
     private var designRevision = 0
 
+    @Published public var isInspectorPresented = true
     @Published public var workspace: Workspace = .design
     @Published public private(set) var state: ProjectState?
     @Published public private(set) var projectURL: URL?

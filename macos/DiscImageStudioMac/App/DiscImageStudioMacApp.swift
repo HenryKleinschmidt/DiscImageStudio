@@ -13,8 +13,7 @@ struct DiscImageStudioMacApp: App {
     var body: some Scene {
         Window("Disc Image Studio", id: "main") {
             RootView(model: model)
-                .frame(minWidth: 1080, minHeight: 700)
-                .preferredColorScheme(nil)
+                .frame(minWidth: 1240, minHeight: 760)
         }
         .defaultSize(width: 1360, height: 880)
         .windowStyle(.titleBar)
@@ -50,6 +49,13 @@ struct AppCommands: Commands {
                 .disabled(!model.hasProject)
         }
 
+        SidebarCommands()
+        CommandGroup(after: .sidebar) {
+            Toggle("Show Inspector", isOn: $model.isInspectorPresented)
+                .keyboardShortcut("i", modifiers: [.command, .option])
+                .disabled(!model.hasProject || ![Workspace.design, .preview, .calibration].contains(model.workspace))
+        }
+
         CommandMenu("Disc") {
             Button("Import Images…") { model.chooseImages() }
                 .keyboardShortcut("i", modifiers: [.command, .shift])
@@ -63,7 +69,7 @@ struct AppCommands: Commands {
             Divider()
             Button("Generate Image") { model.generateImage() }
                 .keyboardShortcut("e", modifiers: [.command, .shift])
-                .disabled(!model.hasProject || model.isExporting)
+                .disabled(!model.canExport || model.isExporting)
             Button("Project Settings…") { model.isProjectSettingsPresented = true }
                 .keyboardShortcut(",", modifiers: [.command, .shift])
                 .disabled(!model.hasProject)

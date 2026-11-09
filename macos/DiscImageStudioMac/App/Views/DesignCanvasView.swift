@@ -3,9 +3,9 @@ import SwiftUI
 
 struct DesignCanvasView: View {
     @ObservedObject var model: WorkspaceViewModel
-    @State private var dragOrigin: CGPoint?
-    @State private var scaleOrigin: Double?
-    @State private var isDropTarget = false
+    @ViewState private var dragOrigin: CGPoint?
+    @ViewState private var scaleOrigin: Double?
+    @ViewState private var isDropTarget = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -52,7 +52,7 @@ struct DesignCanvasView: View {
                                     .font(.system(size: 12, weight: .medium))
                                     .foregroundStyle(.white.opacity(0.8))
                                 Button("Import images") { model.chooseImages() }
-                                    .buttonStyle(SecondaryActionButtonStyle())
+                                    .buttonStyle(.bordered)
                             }
                         }
 
@@ -159,7 +159,7 @@ struct DesignCanvasView: View {
             .offset(x: layer.translateXMm * pixelsPerMm, y: layer.translateYMm * pixelsPerMm)
             .overlay(alignment: .topLeading) {
                 Text(layer.name)
-                    .font(.system(size: 9, weight: .semibold))
+                    .font(.system(size: 11, weight: .semibold))
                     .padding(.horizontal, 5)
                     .padding(.vertical, 2)
                     .background(Theme.mint, in: Capsule())

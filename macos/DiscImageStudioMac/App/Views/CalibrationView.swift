@@ -6,8 +6,8 @@ import SwiftUI
 struct CalibrationView: View {
     @ObservedObject var model: WorkspaceViewModel
     @ObservedObject private var calibration: CalibrationViewModel
-    @State private var canvasMode: CanvasMode = .photo
-    @State private var outputPath = ""
+    @ViewState private var canvasMode: CanvasMode = .photo
+    @ViewState private var outputPath = ""
 
     init(model: WorkspaceViewModel) {
         self.model = model
@@ -28,10 +28,12 @@ struct CalibrationView: View {
                 .frame(minWidth: 300, idealWidth: 335, maxWidth: 380)
             canvasColumn
                 .frame(minWidth: 400, maxWidth: .infinity, minHeight: 420)
-            resultColumn
-                .frame(minWidth: 280, idealWidth: 310, maxWidth: 360)
         }
         .padding(12)
+        .inspector(isPresented: $model.isInspectorPresented) {
+            resultColumn.padding()
+                .inspectorColumnWidth(min: 280, ideal: 310, max: 360)
+        }
         .onAppear {
             if let state = model.state {
                 calibration.configure(
@@ -75,7 +77,7 @@ struct CalibrationView: View {
         Card {
             VStack(alignment: .leading, spacing: 10) {
                 SectionTitle(title: "Stage", subtitle: "Target type to burn next", icon: "ruler")
-                Picker("", selection: Binding(
+                Picker("Calibration stage", selection: Binding(
                     get: { calibration.stage },
                     set: { calibration.selectStage($0) }
                 )) {
@@ -86,10 +88,10 @@ struct CalibrationView: View {
                 .labelsHidden()
                 .pickerStyle(.segmented)
                 Text(calibration.stage.subtitle)
-                    .font(.system(size: 10.5))
+                    .font(.caption)
                     .foregroundStyle(.secondary)
                 Text("Boundary and fine targets use the upstream Core fitters. Coarse targets are not exposed yet; start with boundary/fine if you already have a good initial radius.")
-                    .font(.system(size: 9.5))
+                    .font(.caption)
                     .foregroundStyle(.tertiary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -122,11 +124,11 @@ struct CalibrationView: View {
                     }
                     calibrationNumberField("Cubic", value: $calibration.geometry.pitchCubic)
                 }
-                .font(.system(size: 10.5))
+                .font(.caption)
                 .disabled(calibration.targetInfo != nil)
                 if calibration.targetInfo != nil {
                     Text("This target is a frozen snapshot. Clear it before changing the setup.")
-                        .font(.system(size: 9.5))
+                        .font(.caption)
                         .foregroundStyle(.tertiary)
                 }
                 Button {
@@ -134,7 +136,7 @@ struct CalibrationView: View {
                 } label: {
                     Label(calibration.targetInfo == nil ? "Create target" : "Recreate target", systemImage: "scope")
                 }
-                .buttonStyle(PrimaryActionButtonStyle())
+                .buttonStyle(.borderedProminent)
                 .disabled(!calibration.canCreateTarget)
             }
         }
@@ -162,16 +164,16 @@ struct CalibrationView: View {
                         } label: {
                             Label("Generate burn image…", systemImage: "arrow.down.circle")
                         }
-                        .buttonStyle(SecondaryActionButtonStyle())
+                        .buttonStyle(.bordered)
                         Button("Clear") { calibration.clearTarget() }
-                            .buttonStyle(SecondaryActionButtonStyle())
+                            .buttonStyle(.bordered)
                     }
                     if let artifact = calibration.generatedArtifactURL {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(artifact.lastPathComponent)
-                                .font(.system(size: 10, weight: .semibold))
+                                .font(.system(size: 11, weight: .semibold))
                             Text(artifact.path)
-                                .font(.system(size: 9, design: .monospaced))
+                                .font(.system(size: 11, design: .monospaced))
                                 .foregroundStyle(.secondary)
                                 .lineLimit(1)
                                 .truncationMode(.middle)
@@ -181,19 +183,19 @@ struct CalibrationView: View {
                                 Label("Open in Burn workspace", systemImage: "opticaldiscdrive")
                             }
                             .buttonStyle(.plain)
-                            .font(.system(size: 10, weight: .semibold))
+                            .font(.system(size: 11, weight: .semibold))
                             .foregroundStyle(Theme.accent)
                         }
                         .padding(8)
                         .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 7))
                     }
                     Text("Use only blank media. Burn the generated WAV/ISO from the Burn workspace, then photograph the disc with the whole outer edge and center hole visible.")
-                        .font(.system(size: 9.5))
+                        .font(.caption)
                         .foregroundStyle(.tertiary)
                         .fixedSize(horizontal: false, vertical: true)
                 } else {
                     Text("No target yet. Create one above.")
-                        .font(.system(size: 10.5))
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -206,7 +208,7 @@ struct CalibrationView: View {
                 SectionTitle(title: "Photo", subtitle: "Rectify before measuring", icon: "camera")
                 if calibration.targetInfo == nil {
                     Text("Create a target first.")
-                        .font(.system(size: 10))
+                        .font(.caption)
                         .foregroundStyle(.tertiary)
                 } else {
                     HStack(spacing: 8) {
@@ -215,11 +217,11 @@ struct CalibrationView: View {
                         } label: {
                             Label(calibration.hasPhoto ? "Replace photo…" : "Import photo…", systemImage: "photo.badge.plus")
                         }
-                        .buttonStyle(SecondaryActionButtonStyle())
+                        .buttonStyle(.bordered)
                         if calibration.hasPhoto {
                             Button("Suggest points") { calibration.suggestPhotoPoints() }
                                 .buttonStyle(.plain)
-                                .font(.system(size: 10))
+                                .font(.caption)
                                 .foregroundStyle(Theme.accent)
                         }
                     }
@@ -227,10 +229,10 @@ struct CalibrationView: View {
                     if calibration.hasPhoto {
                         HStack {
                             Text("Disc size")
-                                .font(.system(size: 10, weight: .medium))
+                                .font(.system(size: 11, weight: .medium))
                                 .foregroundStyle(.secondary)
                             Spacer()
-                            Picker("", selection: $calibration.physicalDiscRadiusMm) {
+                            Picker("Disc size", selection: $calibration.physicalDiscRadiusMm) {
                                 Text("12 cm").tag(60.0)
                                 Text("8 cm").tag(40.0)
                             }
@@ -238,7 +240,7 @@ struct CalibrationView: View {
                             .pickerStyle(.segmented)
                             .frame(width: 130)
                         }
-                        Picker("", selection: $calibration.photoPointMode) {
+                        Picker("Photo measurement", selection: $calibration.photoPointMode) {
                             ForEach(CalibrationPhotoPointMode.allCases) { mode in
                                 Text(mode.title).tag(mode)
                             }
@@ -246,24 +248,24 @@ struct CalibrationView: View {
                         .labelsHidden()
                         .pickerStyle(.segmented)
                         Text("Outer \(calibration.outerPoints.count) · Hole \(calibration.holePoints.count)")
-                            .font(.system(size: 10, design: .monospaced))
+                            .font(.system(size: 11, design: .monospaced))
                             .foregroundStyle(.secondary)
                         HStack(spacing: 8) {
                             Button("Undo point") { calibration.removeLastPhotoPoint() }
-                                .buttonStyle(SecondaryActionButtonStyle())
+                                .buttonStyle(.bordered)
                             Button("Clear edge") { calibration.clearPhotoPoints() }
-                                .buttonStyle(SecondaryActionButtonStyle())
+                                .buttonStyle(.bordered)
                         }
                         Button {
                             calibration.rectify()
                         } label: {
                             Label("Calculate rectification", systemImage: "perspective")
                         }
-                        .buttonStyle(PrimaryActionButtonStyle())
+                        .buttonStyle(.borderedProminent)
                         .disabled(calibration.isBusy)
                         if !calibration.rectificationMessage.isEmpty {
                             Text(calibration.rectificationMessage)
-                                .font(.system(size: 10, design: .monospaced))
+                                .font(.system(size: 11, design: .monospaced))
                                 .foregroundStyle(Theme.mint)
                         }
                     }
@@ -278,12 +280,12 @@ struct CalibrationView: View {
                 SectionTitle(title: "Measurement", subtitle: calibration.stage.title, icon: "scribble.variable")
                 if calibration.isRectified {
                     Text(calibration.stage.instructions)
-                        .font(.system(size: 10))
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                     HStack {
                         Text("Points")
-                            .font(.system(size: 10, weight: .medium))
+                            .font(.system(size: 11, weight: .medium))
                             .foregroundStyle(.secondary)
                         Spacer()
                         Text("\(calibration.measurementCount)")
@@ -292,42 +294,42 @@ struct CalibrationView: View {
                     if calibration.stage == .boundary {
                         HStack(spacing: 8) {
                             Button("New segment") { calibration.newBoundarySegment() }
-                                .buttonStyle(SecondaryActionButtonStyle())
+                                .buttonStyle(.bordered)
                             Text("\(calibration.boundarySegments.filter { !$0.isEmpty }.count) visible")
-                                .font(.system(size: 9.5))
+                                .font(.caption)
                                 .foregroundStyle(.tertiary)
                         }
                     }
                     HStack(spacing: 10) {
                         VStack(alignment: .leading, spacing: 3) {
                             Text("Search ± mm")
-                                .font(.system(size: 9.5, weight: .medium))
+                                .font(.system(size: 11, weight: .medium))
                                 .foregroundStyle(.secondary)
-                            TextField("", value: $calibration.radiusRangeMm, format: .number.precision(.fractionLength(0...3)))
+                            TextField("Search radius (mm)", value: $calibration.radiusRangeMm, format: .number.precision(.fractionLength(0...3)))
                                 .textFieldStyle(.roundedBorder)
                                 .frame(width: 76)
                         }
                         Toggle("Fit cubic pitch", isOn: $calibration.fitPitch)
                             .toggleStyle(.checkbox)
-                            .font(.system(size: 10))
+                            .font(.caption)
                     }
                     HStack(spacing: 8) {
                         Button("Undo") { calibration.removeLastMeasurementPoint() }
-                            .buttonStyle(SecondaryActionButtonStyle())
+                            .buttonStyle(.bordered)
                         Button("Clear") { calibration.clearMeasurements() }
-                            .buttonStyle(SecondaryActionButtonStyle())
+                            .buttonStyle(.bordered)
                         Spacer()
                         Button {
                             calibration.solve()
                         } label: {
                             Label("Solve", systemImage: "function")
                         }
-                        .buttonStyle(PrimaryActionButtonStyle())
+                        .buttonStyle(.borderedProminent)
                         .disabled(!calibration.canSolve || calibration.isBusy)
                     }
                 } else {
                     Text("Rectify a photo to start measuring.")
-                        .font(.system(size: 10))
+                        .font(.caption)
                         .foregroundStyle(.tertiary)
                 }
             }
@@ -346,7 +348,7 @@ struct CalibrationView: View {
                 )
                 Spacer()
                 if calibration.photoImage != nil && calibration.rectifiedImage != nil {
-                    Picker("", selection: $canvasMode) {
+                    Picker("Canvas source", selection: $canvasMode) {
                         ForEach(CanvasMode.allCases) { mode in
                             Text(mode.title).tag(mode)
                         }
@@ -382,7 +384,7 @@ struct CalibrationView: View {
                             .scaledToFit()
                             .padding(22)
                         Text("Target preview · import a photo after burning it")
-                            .font(.system(size: 10.5))
+                            .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -442,12 +444,12 @@ struct CalibrationView: View {
                     if calibration.isBusy { ProgressView().controlSize(.small) }
                 }
                 Text(calibration.status)
-                    .font(.system(size: 10.5))
+                    .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 if let error = calibration.errorMessage {
                     Text(error)
-                        .font(.system(size: 10))
+                        .font(.caption)
                         .foregroundStyle(.red)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -482,7 +484,7 @@ struct CalibrationView: View {
                         Divider().opacity(0.5)
                         ForEach(Array(result.warnings.enumerated()), id: \.offset) { _, warning in
                             Text("• \(warning)")
-                                .font(.system(size: 9.5))
+                                .font(.caption)
                                 .foregroundStyle(Theme.amber)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
@@ -492,19 +494,19 @@ struct CalibrationView: View {
                     } label: {
                         Label("Apply to project", systemImage: "checkmark.circle.fill")
                     }
-                    .buttonStyle(PrimaryActionButtonStyle())
+                    .buttonStyle(.borderedProminent)
                     .disabled(!result.succeeded || result.best == nil || calibration.isBusy)
                     Text("Applying updates the project's inner/outer radius and pitch coefficients. The burned target's original geometry stays frozen in the session.")
-                        .font(.system(size: 9))
+                        .font(.caption)
                         .foregroundStyle(.tertiary)
                         .fixedSize(horizontal: false, vertical: true)
                 } else if calibration.isRectified {
                     Text("Trace the target and press Solve. The engine will search the track model around the captured geometry.")
-                        .font(.system(size: 10.5))
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                 } else {
                     Text("Create a target, burn it, photograph it, then rectify the photo.")
-                        .font(.system(size: 10.5))
+                        .font(.caption)
                         .foregroundStyle(.tertiary)
                 }
             }
@@ -528,9 +530,9 @@ struct CalibrationView: View {
     private func calibrationNumberField(_ title: String, value: Binding<Double>) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             Text(title)
-                .font(.system(size: 9.5, weight: .medium))
+                .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(.secondary)
-            TextField("", value: value, format: .number.precision(.fractionLength(0...7)))
+            TextField(title, value: value, format: .number.precision(.fractionLength(0...7)))
                 .textFieldStyle(.roundedBorder)
                 .disabled(calibration.targetInfo != nil)
         }
@@ -574,15 +576,15 @@ private struct WorkflowStep: View {
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
             Text("\(number)")
-                .font(.system(size: 9, weight: .bold, design: .rounded))
+                .font(.system(size: 11, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
                 .frame(width: 17, height: 17)
                 .background(Theme.accent, in: Circle())
             VStack(alignment: .leading, spacing: 1) {
                 Text(title)
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(.system(size: 11, weight: .semibold))
                 Text(detail)
-                    .font(.system(size: 9.5))
+                    .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }

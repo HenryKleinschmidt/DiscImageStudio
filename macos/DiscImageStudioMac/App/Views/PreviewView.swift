@@ -14,10 +14,12 @@ struct PreviewView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            sidePanel
-                .frame(width: 280)
         }
         .padding(12)
+        .inspector(isPresented: $model.isInspectorPresented) {
+            sidePanel.padding()
+                .inspectorColumnWidth(min: 260, ideal: 280, max: 360)
+        }
         .task {
             model.renderPreviewIfNeeded()
         }
@@ -27,7 +29,7 @@ struct PreviewView: View {
         Card(padding: 12) {
             VStack(alignment: .leading, spacing: 9) {
                 HStack(spacing: 14) {
-                    Picker("", selection: $model.previewMode) {
+                    Picker("Preview source", selection: $model.previewMode) {
                         ForEach(PreviewMode.allCases) { mode in
                             Text(mode.title).tag(mode)
                         }
@@ -43,9 +45,9 @@ struct PreviewView: View {
 
                     HStack(spacing: 6) {
                         Text("Size")
-                            .font(.system(size: 10, weight: .medium))
+                            .font(.system(size: 11, weight: .medium))
                             .foregroundStyle(.secondary)
-                        Picker("", selection: $model.previewSize) {
+                        Picker("Preview size", selection: $model.previewSize) {
                             ForEach(sizes, id: \.self) { size in
                                 Text("\(size) px").tag(size)
                             }
@@ -69,17 +71,17 @@ struct PreviewView: View {
                     } label: {
                         Label("Render", systemImage: "sparkles")
                     }
-                    .buttonStyle(PrimaryActionButtonStyle())
+                    .buttonStyle(.borderedProminent)
                     .disabled((model.state?.layers.isEmpty ?? true) || model.isPreviewing)
                 }
 
                 HStack(spacing: 7) {
                     Text("Measured radii")
-                        .font(.system(size: 10, weight: .medium))
+                        .font(.system(size: 11, weight: .medium))
                         .foregroundStyle(.secondary)
                         .fixedSize()
                     TextField(
-                        "r0",
+                        "Inner radius (mm)",
                         value: $model.previewMeasuredInnerRadiusMm,
                         format: .number.precision(.fractionLength(0...3))
                     )
@@ -88,17 +90,17 @@ struct PreviewView: View {
                     Text("–")
                         .foregroundStyle(.tertiary)
                     TextField(
-                        "r1",
+                        "Outer radius (mm)",
                         value: $model.previewMeasuredOuterRadiusMm,
                         format: .number.precision(.fractionLength(0...3))
                     )
                     .textFieldStyle(.roundedBorder)
                     .frame(width: 72)
                     Text("mm")
-                        .font(.system(size: 10))
+                        .font(.caption)
                         .foregroundStyle(.tertiary)
                     Text("Used only by the inspection projection; generation uses the project geometry.")
-                        .font(.system(size: 9.5))
+                        .font(.caption)
                         .foregroundStyle(.tertiary)
                         .padding(.leading, 6)
                     Spacer()
@@ -128,7 +130,7 @@ struct PreviewView: View {
                 VStack(spacing: 12) {
                     ProgressView().controlSize(.large)
                     Text(model.previewStatus)
-                        .font(.system(size: 11.5))
+                        .font(.callout)
                         .foregroundStyle(.white.opacity(0.7))
                 }
             } else {
@@ -140,13 +142,13 @@ struct PreviewView: View {
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(.white.opacity(0.82))
                     Text(model.previewStatus)
-                        .font(.system(size: 10.5))
+                        .font(.caption)
                         .foregroundStyle(.white.opacity(0.5))
                         .multilineTextAlignment(.center)
                         .frame(maxWidth: 320)
                     if !(model.state?.layers.isEmpty ?? true) {
                         Button("Render preview") { model.renderPreview() }
-                            .buttonStyle(PrimaryActionButtonStyle())
+                            .buttonStyle(.borderedProminent)
                     }
                 }
             }
@@ -187,7 +189,7 @@ struct PreviewView: View {
                         }
                         Divider().opacity(0.5)
                         Text(model.previewStatus)
-                            .font(.system(size: 10.5))
+                            .font(.caption)
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -200,7 +202,7 @@ struct PreviewView: View {
                                 .font(.system(size: 11, weight: .semibold))
                                 .foregroundStyle(Theme.accent)
                             Text("The C# CLI has no standalone BD preview command, so BD uses the same native tone mapping the design canvas uses. Export still runs the engine's full 17PP/ECC pipeline.")
-                                .font(.system(size: 10))
+                                .font(.caption)
                                 .foregroundStyle(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
@@ -214,7 +216,7 @@ struct PreviewView: View {
                         Text(model.previewMode == .design
                              ? "Design projection samples the 4096 px composite through the engine's geometry."
                              : "Read-back renders the generated artifact itself. Generate an image first.")
-                            .font(.system(size: 10))
+                            .font(.caption)
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }

@@ -2,6 +2,7 @@ import DiscImageStudioKit
 import SwiftUI
 
 struct ExportView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @ObservedObject var model: WorkspaceViewModel
 
     var body: some View {
@@ -39,7 +40,7 @@ struct ExportView: View {
                     Text(state.layers.isEmpty
                          ? "Import at least one image on the Design page."
                          : "Layers are flattened by the SwiftUI compositor, then quantized by the engine's tone profile.")
-                        .font(.system(size: 10.5))
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -57,7 +58,7 @@ struct ExportView: View {
                         text: model.projectBinding(\.outputs.outputPath, fallback: "")
                     )
                     .textFieldStyle(.roundedBorder)
-                    .font(.system(size: 10.5, design: .monospaced))
+                    .font(.system(size: 11, design: .monospaced))
                     Button {
                         if let path = model.chooseOutputPath(family: model.family) {
                             model.apply { $0.outputs.outputPath = path }
@@ -68,7 +69,7 @@ struct ExportView: View {
                     .buttonStyle(.plain)
                 }
                 Text(model.outputDisplayName)
-                    .font(.system(size: 10, design: .monospaced))
+                    .font(.system(size: 11, design: .monospaced))
                     .foregroundStyle(.tertiary)
                     .lineLimit(1)
                     .truncationMode(.middle)
@@ -79,7 +80,7 @@ struct ExportView: View {
                         text: model.projectBinding(\.outputs.dataDirectory, fallback: "")
                     )
                     .textFieldStyle(.roundedBorder)
-                    .font(.system(size: 10.5, design: .monospaced))
+                    .font(.system(size: 11, design: .monospaced))
                     Button {
                         if let path = model.chooseDataDirectory() {
                             model.apply { $0.outputs.dataDirectory = path }
@@ -96,7 +97,7 @@ struct ExportView: View {
                         text: model.projectBinding(\.outputs.volumeLabel, fallback: "DISC_IMAGE")
                     )
                     .textFieldStyle(.roundedBorder)
-                    .font(.system(size: 10.5, design: .monospaced))
+                    .font(.system(size: 11, design: .monospaced))
                 }
             }
         }
@@ -109,13 +110,13 @@ struct ExportView: View {
 
                 if model.family == .cd {
                     Toggle("Write CUE sheet", isOn: model.projectBinding(\.outputs.writeCue, fallback: true))
-                        .toggleStyle(.switch)
+                        .toggleStyle(.checkbox)
                         .controlSize(.small)
                     Toggle("Delay interleave", isOn: model.projectBinding(\.outputs.interleave, fallback: true))
-                        .toggleStyle(.switch)
+                        .toggleStyle(.checkbox)
                         .controlSize(.small)
                     Text("Without disc files the engine writes a WAV (or RAW) audio track. With disc files it writes a Mode 1 ISO.")
-                        .font(.system(size: 9.5))
+                        .font(.caption)
                         .foregroundStyle(.tertiary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -125,17 +126,17 @@ struct ExportView: View {
                         "Experimental read compatibility",
                         isOn: model.projectBinding(\.outputs.dvdReadCompatibility, fallback: false)
                     )
-                    .toggleStyle(.switch)
+                    .toggleStyle(.checkbox)
                     .controlSize(.small)
                     Text("Read compatibility reserves drawing byte patterns for players that struggle with extreme high-frequency content.")
-                        .font(.system(size: 9.5))
+                        .font(.caption)
                         .foregroundStyle(.tertiary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
                 if model.family == .bd {
                     Text("BD-R export includes the UDF 2.01 filesystem when a folder is selected. The engine writes the full single-layer ISO.")
-                        .font(.system(size: 9.5))
+                        .font(.caption)
                         .foregroundStyle(.tertiary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -171,12 +172,12 @@ struct ExportView: View {
                     } label: {
                         Label(model.isExporting ? "Generating…" : "Generate image", systemImage: "arrow.down.circle.fill")
                     }
-                    .buttonStyle(PrimaryActionButtonStyle())
+                    .buttonStyle(.borderedProminent)
                     .disabled(!model.canExport || model.isExporting)
 
                     if model.isExporting {
                         Button("Cancel") { model.cancelExport() }
-                            .buttonStyle(SecondaryActionButtonStyle())
+                            .buttonStyle(.bordered)
                     }
                 }
             }
@@ -191,7 +192,7 @@ struct ExportView: View {
                         Text("Engine log")
                             .font(.system(size: 12, weight: .semibold))
                         Text(model.exportStatus)
-                            .font(.system(size: 10))
+                            .font(.caption)
                             .foregroundStyle(.secondary)
                             .lineLimit(2)
                     }
@@ -205,7 +206,7 @@ struct ExportView: View {
                         } label: {
                             Label("Reveal", systemImage: "magnifyingglass")
                         }
-                        .buttonStyle(SecondaryActionButtonStyle())
+                        .buttonStyle(.bordered)
                         .help("Reveal \(output.lastPathComponent) in Finder")
                     }
                 }
@@ -218,12 +219,12 @@ struct ExportView: View {
                         VStack(alignment: .leading, spacing: 1) {
                             if model.exportLog.isEmpty {
                                 Text("The command line, engine progress and errors appear here.")
-                                    .font(.system(size: 10.5, design: .monospaced))
+                                    .font(.system(size: 11, design: .monospaced))
                                     .foregroundStyle(.tertiary)
                                     .padding(14)
                             } else {
                                 Text(model.exportLog)
-                                    .font(.system(size: 10, design: .monospaced))
+                                    .font(.system(size: 11, design: .monospaced))
                                     .textSelection(.enabled)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .padding(14)
@@ -233,7 +234,7 @@ struct ExportView: View {
                     }
                     .background(Color(nsColor: .textBackgroundColor).opacity(0.55))
                     .onChange(of: model.exportLog) { _, _ in
-                        withAnimation(.linear(duration: 0.12)) {
+                        withAnimation(reduceMotion ? nil : .linear(duration: 0.12)) {
                             proxy.scrollTo("log-end", anchor: .bottom)
                         }
                     }
@@ -244,13 +245,13 @@ struct ExportView: View {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundStyle(Theme.mint)
                         Text(output.path)
-                            .font(.system(size: 9.5, design: .monospaced))
+                            .font(.system(size: 11, design: .monospaced))
                             .lineLimit(1)
                             .truncationMode(.middle)
                         Spacer()
                         Button("Show in Finder") { model.revealOutput() }
                             .buttonStyle(.plain)
-                            .font(.system(size: 10, weight: .medium))
+                            .font(.system(size: 11, weight: .medium))
                             .foregroundStyle(Theme.accent)
                     }
                     .padding(12)
