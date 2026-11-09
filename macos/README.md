@@ -1,13 +1,18 @@
 # Disc Image Studio — native macOS frontend
 
 A native SwiftUI macOS workspace for [DiscImageStudio](https://github.com/JiaFeiMiao-K-Cat/DiscImageStudio).
-The UI, layer compositor, tone preview, project editor and `.discproj` reader/writer are
-Swift; the mature physical CD/DVD/BD-R encoders stay in the upstream .NET engine and are
-driven through its cross-platform CLI.
+The UI, layer compositor, tone preview, project editor, calibration canvas and `.discproj`
+reader/writer are Swift; the mature physical CD/DVD/BD-R encoders and calibration fitters
+stay in the upstream .NET engine and are driven through its cross-platform CLI. Burning
+uses macOS DiscRecording (`/usr/bin/drutil`).
 
 ![Home](docs/home.png)
 
 ![Design](docs/design.png)
+
+![Calibrate](docs/calibration.png)
+
+![Burn](docs/burn.png)
 
 ## Why this exists
 
@@ -21,6 +26,15 @@ Linux/macOS CLI, so this frontend gives macOS a first-class native window:
   BD preview command upstream).
 - **Export** — generates CD WAV/CUE, CD data ISO, DVD ISO or single-layer BD-R ISO through the
   same engine, including hybrid disc folders and the experimental DVD read-compatibility mode.
+- **Calibrate** — creates boundary or fine calibration targets from the current geometry,
+  hands generated artifacts to the Burn workspace, rectifies a photo of the burned disc, traces
+  the boundary or one cross arm, and applies fitted radii and pitch coefficients to the project.
+  Coarse-stage solving is not exposed yet.
+- **Burn** — discovers drives and media through macOS DiscRecording, then writes a generated
+  CD audio WAV (`-audio`) or CD/DVD/BD ISO (`-data`) with test burn, verify, eject and speed
+  options. It warns when the inserted media does not look blank. CD/DVD burning is the supported
+  path; BD-R is best-effort because DiscRecording's Blu-ray writer support is limited. The
+  source can be the project export or a calibration artifact.
 - **Projects** — reads and writes upstream `.discproj` schema 2, including tone and Blu-ray
   polarity settings, so a project can move between the Windows app and this frontend.
 
@@ -31,6 +45,8 @@ Linux/macOS CLI, so this frontend gives macOS a first-class native window:
 - XcodeGen is optional; the generated `DiscImageStudioMac.xcodeproj` is committed.
 - .NET 10 SDK to build/run the engine. The app can also bundle a self-contained engine so an
   end user does not need .NET installed.
+- For burning, an optical recorder recognized by macOS and blank media. CD/DVD is the supported
+  path; BD-R is best-effort.
 
 ## Build and run
 
@@ -71,7 +87,7 @@ macos/scripts/build-cli.sh
 ## Verify
 
 ```bash
-# 22 unit tests, including tiny CD, DVD and BD-R generations through the .NET CLI.
+# 30 unit tests, including tiny CD, DVD and BD-R generations through the .NET CLI.
 cd macos
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
   xcodebuild -project DiscImageStudioMac.xcodeproj -scheme DiscImageStudioMac \
@@ -79,10 +95,17 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
 
 # Ask the upstream C# ProjectJsonStore to load a project written by Swift.
 macos/scripts/verify-project-compat.sh
+
+# Generate/rectify/solve synthetic calibration targets through the CLI.
+macos/scripts/verify-calibration.sh
 ```
 
 The integration tests render native composites, build the engine argument vectors, and generate a tiny CD WAV/CUE, DVD ISO and BD-R ISO. The compatibility script uses the upstream
-`ProjectJsonStore.Load` implementation, not a reimplementation.
+`ProjectJsonStore.Load` implementation, not a reimplementation. No test writes optical media;
+checking a real burn requires blank media and a compatible drive.
+
+`verify-calibration.sh` exercises target creation, synthetic photo rectification and a fine
+fit without needing a drive or media.
 
 ## Layout
 
@@ -93,9 +116,9 @@ macos/
 ├── scripts/                        build, CLI publish, compatibility check
 └── DiscImageStudioMac/
     ├── Kit/Models/                 .discproj schema 2, family, tone, presets
-    ├── Kit/Services/               project store, compositor, CLI runner, commands
-    ├── Kit/ViewModels/             workspace state and orchestration
-    ├── App/Views/                  SwiftUI screens
+    ├── Kit/Services/               project store, compositor, CLI runner, commands, drutil wrapper
+    ├── Kit/ViewModels/             workspace, burn and calibration orchestration
+    ├── App/Views/                  SwiftUI screens and calibration canvas
     ├── Resources/                  app icon and Info.plist
     └── Tests/                      XCTest unit + engine integration tests
 ```
@@ -110,19 +133,36 @@ macos/
 - Export hands the 8192 px composite to the CLI. The engine applies the final tone mapping,
   ECC/EFM and filesystem layout.
 
+### Calibration and burning
+
+- `CalibrationViewModel` asks the CLI to create target artwork, rectify photos and fit the
+  track geometry. Target generation and fitting use the upstream Core `CalibrationTarget`,
+  `CalibrationPhotoRectifier`, `CalibrationBoundaryFitter` and `CalibrationCrossFitter`;
+  Swift owns the photo/trace canvas and point capture. Generating a target artifact writes
+  a matching `.calibration.json` sidecar next to it.
+- `BurnService` wraps `/usr/bin/drutil`. CD audio uses `-audio` with the WAV staged in a
+  temporary directory; ISO images use `-data`. Drive/media discovery comes from
+  `drutil list` and `drutil -drive <n> status`, and `-test`, `-verify`, `-eject` and `-speed`
+  map to the workspace options. CD/DVD burning is supported; BD-R depends on DiscRecording support and
+  is best-effort.
+
 ## Current scope
 
 Implemented: project create/open/save/save-as, recent projects, family presets, geometry
 validation, layer stack editing, drag/drop import, direct canvas drag + magnification,
 tone controls, native design/tone previews, CD/DVD engine previews, artifact read-back,
 CD/DVD/BD export, hybrid disc folders, volume labels, cancellation, engine diagnostics,
-Settings and About.
+boundary/fine calibration target generation, photo rectification, boundary/cross tracing,
+track-geometry fitting, CD audio/ISO burning through DiscRecording (drive/media discovery,
+test burn, verify, eject, speed), Settings and About.
 
 Deliberately not included yet:
 
-- **Disc burning** — the upstream burning layer is Windows IMAPI2. Generate an image on macOS
-  and burn with your preferred tool.
-- **Calibration workspace** — calibration photos/records remain in the Windows app for now.
+- **Coarse calibration stage** — the UI exposes boundary and fine targets only; coarse-stage
+  solving is not exposed yet.
+- **Guaranteed BD-R burning** — DiscRecording's Blu-ray writer support is limited. Some BD-R
+  drives and media are rejected even when the ISO is valid; CD/DVD burning is the supported
+  path and BD-R is best-effort.
 - **Exact DVD/BD custom-usable-sector image scaling** — the CLI maps the picture over the full
   geometry; built-in presets use full geometry, and CD supports `--usable-sectors` natively.
 

@@ -102,6 +102,7 @@ struct Tag: View {
 
 struct PrimaryActionButtonStyle: ButtonStyle {
     var tint: Color = Theme.accent
+    @Environment(\.isEnabled) private var isEnabled
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -118,11 +119,13 @@ struct PrimaryActionButtonStyle: ButtonStyle {
                 in: RoundedRectangle(cornerRadius: 9, style: .continuous)
             )
             .shadow(color: tint.opacity(configuration.isPressed ? 0.1 : 0.28), radius: 8, y: 4)
-            .opacity(configuration.isPressed ? 0.82 : 1)
+            .opacity(isEnabled ? (configuration.isPressed ? 0.82 : 1) : 0.42)
     }
 }
 
 struct SecondaryActionButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 12, weight: .medium))
@@ -136,6 +139,7 @@ struct SecondaryActionButtonStyle: ButtonStyle {
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
                     .strokeBorder(Color.primary.opacity(0.08), lineWidth: 1)
             )
+            .opacity(isEnabled ? 1 : 0.45)
     }
 }
 

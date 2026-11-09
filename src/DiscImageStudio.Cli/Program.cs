@@ -16,11 +16,17 @@ internal static class Program
                 foreach (DiscCommandDescriptor command in module.Descriptor.Commands)
                     Console.WriteLine($"  {command.Name,-20} {command.Description}");
             }
+            Console.WriteLine("\nCalibration");
+            Console.WriteLine("  calibration-create   Create a target preview, encoding image and calibration session");
+            Console.WriteLine("  calibration-rectify  Rectify a disc photo from outer/hole boundary points");
+            Console.WriteLine("  calibration-solve    Fit a boundary or fine target from rectified points");
             return 0;
         }
 
         try
         {
+            if (args[0].StartsWith("calibration-", StringComparison.Ordinal))
+                return CalibrationCommands.Run(args);
             return ConsoleModuleRunner.Run(args);
         }
         catch (OperationCanceledException)

@@ -230,9 +230,7 @@ public final class CLIService: @unchecked Sendable {
                 throw CLIError.launchFailed(error.localizedDescription)
             }
 
-            lock.lock()
-            currentProcess = process
-            lock.unlock()
+            setCurrentProcess(process)
 
             process.waitUntilExit()
 
@@ -241,9 +239,7 @@ public final class CLIService: @unchecked Sendable {
             collector.append(stdoutPipe.fileHandleForReading.readDataToEndOfFile(), isError: false)
             collector.append(stderrPipe.fileHandleForReading.readDataToEndOfFile(), isError: true)
 
-            lock.lock()
-            currentProcess = nil
-            lock.unlock()
+            setCurrentProcess(nil)
 
             let result = CLIResult(
                 exitCode: process.terminationStatus,
@@ -259,16 +255,23 @@ public final class CLIService: @unchecked Sendable {
     }
 
     public func cancelCurrent() {
-        lock.lock()
-        let process = currentProcess
-        lock.unlock()
-        process?.terminate()
+        currentProcessSnapshot()?.terminate()
     }
 
     public func isRunning() -> Bool {
+        currentProcessSnapshot()?.isRunning ?? false
+    }
+
+    private func setCurrentProcess(_ process: Process?) {
+        lock.lock()
+        currentProcess = process
+        lock.unlock()
+    }
+
+    private func currentProcessSnapshot() -> Process? {
         lock.lock()
         defer { lock.unlock() }
-        return currentProcess?.isRunning ?? false
+        return currentProcess
     }
 }
 

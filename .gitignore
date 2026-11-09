@@ -26,6 +26,7 @@ __pycache__/
 
 # macOS frontend
 macos/build/
+macos/DiscImageStudioMac ?.xcodeproj/
 macos/**/*.xcuserstate
 macos/**/xcuserdata/
 .DS_Store

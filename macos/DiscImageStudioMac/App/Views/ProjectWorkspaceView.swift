@@ -235,6 +235,10 @@ struct ProjectWorkspaceView: View {
                 }
                 .buttonStyle(PrimaryActionButtonStyle())
                 .disabled(!model.canExport || model.isExporting)
+            case .calibration:
+                EmptyView()
+            case .burn:
+                EmptyView()
             }
         }
         .padding(.horizontal, Theme.pagePadding)
@@ -250,6 +254,10 @@ struct ProjectWorkspaceView: View {
             return "Projection follows the current project geometry; measured radii only affect inspection."
         case .export:
             return "The same 8192 px composite used for preview is written into the disc image."
+        case .calibration:
+            return "Generate a target, photograph the burned disc, rectify it and fit the physical track geometry."
+        case .burn:
+            return "macOS DiscRecording burns the generated artifact to a blank disc. Write-once media cannot be undone."
         }
     }
 
@@ -262,6 +270,10 @@ struct ProjectWorkspaceView: View {
             PreviewView(model: model)
         case .export:
             ExportView(model: model)
+        case .calibration:
+            CalibrationView(model: model)
+        case .burn:
+            BurnView(model: model)
         }
     }
 }

@@ -41,7 +41,9 @@ Disc Image Studio 可将一张图片转换成符合 CD、DVD 与单层 BD-R 光�
 
 ## 原生 macOS 前端
 
-[`macos/`](macos/README.md) 提供了一个原生 SwiftUI 前端，支持 macOS 14 及以上，覆盖设计、预览与导出工作流，读写 `.discproj` schema 2，并通过跨平台 .NET CLI 调用同一套物理编码引擎。构建方式与自包含打包说明见 [macOS README](macos/README.md)。
+[`macos/`](macos/README.md) 提供了一个原生 SwiftUI 前端，支持 macOS 14 及以上，覆盖设计、预览、导出、标定与刻录工作区，读写 `.discproj` schema 2，并通过跨平台 .NET CLI 调用同一套物理编码引擎。构建方式、自包含打包与验证命令见 [macOS README](macos/README.md)。
+
+标定工作区支持边界标定与精细标定的标靶生成、照片矫正、边界／十字臂取点与轨距拟合，暂未提供粗标定求解；生成的标靶文件可直接发送到刻录工作区。刻录工作区通过 macOS 自带的 DiscRecording（`/usr/bin/drutil`）写入生成的 CD 音频 WAV 或 CD／DVD／BD ISO，支持测试刻录、校验、弹出与速度选择；CD／DVD 为受支持路径，受 DiscRecording 限制，BD-R 刻录为尽力而为。实际刻录验证需要空白盘片与兼容刻录机。
 
 ---
 
@@ -86,12 +88,15 @@ Disc Image Studio 提供粗标定、边界标定和精细标定流程，通过�
 | `P20261004-133519.jpg` | `P20261004-135416.jpg` |
 
 
+原生 macOS 前端的「标定」工作区支持边界标定与精细标定的标靶生成、照片矫正、边界／十字臂取点与轨距拟合，并可将生成的标靶文件直接发送到「刻录」工作区；粗标定求解暂未提供。
+
 第一次使用可跟随[DVD 标定实操教程：Verbatim AZO DVD-R](docs/CALIBRATION_TUTORIAL.md)，查看照片矫正、三个标定阶段的实际取点、参数变化与参考值，以及精标后的盘面效果。完整流程与参数说明见[辅助标定说明](docs/CALIBRATION.md)。
 
 ### 刻录
 
 - **镜像文件输出**：您可以导出完整 ISO / RAW 文件并使用合适的刻录软件手动刻录。
 - **即时流式刻录（实验性）**：CD、DVD 与 BD-R 边生成边刻录，不保存完整镜像；BD-R 走 MMC 顺序写入。
+- **macOS 前端**：原生应用通过 macOS 自带的 DiscRecording（`drutil`）刻录生成的 CD 音频 WAV 或 CD／DVD／BD ISO，支持测试刻录、校验、弹出与速度选择；CD／DVD 为受支持路径，受 DiscRecording 限制，BD-R 为尽力而为。
 - **不要使用非空白介质！**
 
 ## 系统与设备要求
@@ -99,6 +104,7 @@ Disc Image Studio 提供粗标定、边界标定和精细标定流程，通过�
 - x64 桌面版需要 Windows 10 2004（2004/20H1，19041）及以上，或 Windows 11；ARM64 桌面版需要 Windows 11。ARM64 的原生 CI 覆盖软件自检与 GUI 截图，尚未验证实盘刻录。
 - 构建：.NET 10 SDK（`global.json` 锁定 10.0.x）；自行构建的非自包含 GUI 需要 .NET 10 Windows 桌面运行时。Release EXE 已包含运行时，无需另行安装 .NET。
 - “即时刻录”功能需要一台 Windows 可识别的 CD / DVD / BD 刻录机与空白盘片；BD-R 需要支持顺序写入的单层空白盘。
+- 原生 macOS 前端需要 macOS 14 及以上；刻录需要 macOS 可识别的刻录机与空白盘片。CD／DVD 刻录为受支持路径，受 DiscRecording 限制，BD-R 为尽力而为。
 
 ## 构建与运行
 
@@ -144,6 +150,9 @@ CLI 可读取 PNG、JPEG、BMP 和 GIF，使用动画图片的第一帧。下面
 | `cd-preview-track` | 按标定几何渲染已有的 WAV 或 RAW CD-DA 音轨（读回模拟） |
 | `bd-generate` | 生成完整 BD-R ISO，并写出 `<iso>.json` sidecar |
 | `bd-info` / `bd-probe` / `bd-encode` | 导出 BD 参数、原始负载探针或单个 ECC 簇诊断 |
+| `calibration-create` | 生成标定标靶预览、8192 px 编码图与 `.calibration.json` 记录 |
+| `calibration-rectify` | 按外缘与中心孔取点矫正盘面照片 |
+| `calibration-solve` | 从矫正后的取点拟合边界或精细标定几何 |
 
 各命令的完整参数见对应文档。
 
@@ -200,6 +209,7 @@ CD 公共编码部分还参考了 [ECMA-130，第 2 版（CD-ROM，1996）](http
 ## 刻录与介质安全须知
 
 - Disc Image Studio 不安装驱动或服务；“即时刻录”功能使用了 Windows 自带的 IMAPI2，拒绝非空白介质。
+- 原生 macOS 前端使用 Apple DiscRecording（`/usr/bin/drutil`），不使用 IMAPI2；介质看起来不是空白时会先警告，但一次性写入介质无法复用。CD／DVD 刻录为受支持路径，BD-R 刻录为尽力而为。
 - “即时刻录”功能已有部分实盘反馈，对不同设备、介质与刻录入口的验证覆盖仍有限，属于实验性功能，请只使用可报废的测试介质。刻录中断、断电或生成速度不足仍可能使盘片报废！
 - 实际可见效果取决于盘片、刻录机、固件与写入策略。
 - 混合文件夹会在开始刻录前扫描目录并固定布局；期间源文件大小改变会安全终止任务，已开始写入的盘片仍可能报废。

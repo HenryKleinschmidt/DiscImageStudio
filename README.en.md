@@ -41,7 +41,9 @@ Disc Image Studio converts an image into data that meets the physical-layer cons
 
 ## Native macOS Frontend
 
-A native SwiftUI frontend lives in [`macos/`](macos/README.md). It provides the same project workflow (design, preview, export) on macOS 14+, reads and writes `.discproj` schema 2, and drives the cross-platform .NET engine. It can be built as a self-contained app with the engine bundled. See the [macOS README](macos/README.md) for build and verification commands.
+A native SwiftUI frontend lives in [`macos/`](macos/README.md). On macOS 14+ it provides Design, Preview, Export, Calibrate and Burn workspaces, reads and writes `.discproj` schema 2, and drives the cross-platform .NET engine. It can be built as a self-contained app with the engine bundled. See the [macOS README](macos/README.md) for build and verification commands.
+
+The Calibrate workspace generates boundary and fine targets, rectifies photos, traces the boundary or a cross arm, and fits track geometry; coarse-stage solving is not exposed yet. The Burn workspace writes generated CD audio WAV or CD/DVD/BD ISO artifacts through Apple DiscRecording (`/usr/bin/drutil`), with test burn, verify, eject and speed options. CD/DVD burning is the supported path; BD-R burning is best-effort because DiscRecording’s Blu-ray writer support is limited. A real burn check needs blank media and a compatible drive.
 
 ---
 
@@ -86,12 +88,15 @@ Disc Image Studio provides an intelligent, precise assisted calibration workflow
 | `P20261004-133519.jpg` | `P20261004-135416.jpg` |
 
 
+The native macOS frontend includes a Calibrate workspace for boundary and fine target generation, photo rectification, boundary/cross tracing and track-geometry fitting; coarse-stage solving is not exposed yet. Generated target artifacts can be sent directly to the Burn workspace.
+
 See the [assisted calibration guide](docs/CALIBRATION.md) for the workflow and parameters.
 
 ### Burning
 
 - **Disc image output**: Export complete ISO / RAW files and burn them manually with suitable burning software.
 - **Live streaming burn (experimental)**: Generate and burn CD, DVD, and BD-R data simultaneously without saving a complete disc image. BD-R uses MMC sequential writing.
+- **macOS frontend**: The native app burns generated CD audio WAV or CD/DVD/BD ISO artifacts through Apple DiscRecording (`drutil`), with test burn, verify, eject and speed options. CD/DVD burning is the supported path; BD-R is best-effort because DiscRecording’s Blu-ray writer support is limited.
 - **Do not use non-blank media!**
 
 ## System and Hardware Requirements
@@ -99,6 +104,7 @@ See the [assisted calibration guide](docs/CALIBRATION.md) for the workflow and p
 - The x64 desktop app requires Windows 10 2004 (2004/20H1, 19041) or later, or Windows 11. The ARM64 app requires Windows 11. Native ARM64 CI covers software self-tests and GUI snapshots; physical disc burning on ARM64 remains unverified.
 - Building: .NET 10 SDK (`global.json` pins 10.0.x). A non-self-contained GUI built from source requires the .NET 10 Windows Desktop Runtime. The Release EXE includes the runtime, so a separate .NET installation is unnecessary.
 - Live burning requires a CD / DVD / BD recorder recognized by Windows and blank media. BD-R requires a blank single-layer disc that supports sequential writing.
+- The native macOS frontend requires macOS 14 or newer. Burning needs a recorder recognized by macOS plus blank media; CD/DVD burning is supported, while BD-R is best-effort due to limited DiscRecording support.
 
 ## Build and Run
 
@@ -144,6 +150,9 @@ The CLI reads PNG, JPEG, BMP and GIF, using the first frame of animated images. 
 | `cd-preview-track` | Render an existing WAV or RAW CD-DA audio track using calibrated geometry (readback simulation) |
 | `bd-generate` | Generate a complete BD-R ISO and write an `<iso>.json` sidecar |
 | `bd-info` / `bd-probe` / `bd-encode` | Export BD parameters, raw payload probes, or diagnostics for a single ECC cluster |
+| `calibration-create` | Create a calibration target preview, 8192 px encoding image and `.calibration.json` session |
+| `calibration-rectify` | Rectify a disc photo from outer-edge and center-hole points |
+| `calibration-solve` | Fit boundary or fine calibration geometry from rectified points |
 
 See the corresponding documentation for each command’s complete parameters.
 
@@ -199,6 +208,7 @@ The common CD encoding components also reference [ECMA-130, 2nd edition (CD-ROM,
 ## Burning and Media Safety
 
 - Disc Image Studio does not install drivers or services. Live burning uses Windows’ built-in IMAPI2 and rejects non-blank media.
+- The native macOS frontend uses Apple’s DiscRecording (`/usr/bin/drutil`), not IMAPI2. It warns when the inserted disc does not look blank, but write-once media cannot be reused. CD/DVD burning is the supported path; BD-R burning is best-effort.
 - Live burning has received some feedback from physical disc tests, but validation coverage across different devices, media, and burning paths remains limited. It is experimental; use only expendable test media. Interrupted burning, power loss, or insufficient generation speed may still render a disc unusable!
 - The actual visible result depends on the disc, recorder, firmware, and write strategy.
 - For hybrid discs, the source folder is scanned and its layout is fixed before burning starts. If a source file’s size changes during the operation, the job is safely terminated; a disc that has already started writing may still become unusable.

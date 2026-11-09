@@ -8,6 +8,8 @@ public enum Workspace: String, CaseIterable, Identifiable, Sendable {
     case design
     case preview
     case export
+    case calibration
+    case burn
 
     public var id: String { rawValue }
 
@@ -16,6 +18,8 @@ public enum Workspace: String, CaseIterable, Identifiable, Sendable {
         case .design: return "Design"
         case .preview: return "Preview"
         case .export: return "Export"
+        case .calibration: return "Calibrate"
+        case .burn: return "Burn"
         }
     }
 
@@ -24,6 +28,8 @@ public enum Workspace: String, CaseIterable, Identifiable, Sendable {
         case .design: return "Compose layers and tone"
         case .preview: return "Check the disc projection"
         case .export: return "Write the disc image"
+        case .calibration: return "Measure a burned target"
+        case .burn: return "Write to optical media"
         }
     }
 
@@ -32,6 +38,8 @@ public enum Workspace: String, CaseIterable, Identifiable, Sendable {
         case .design: return "square.3.layers.3d"
         case .preview: return "eye"
         case .export: return "arrow.down.circle"
+        case .calibration: return "ruler"
+        case .burn: return "opticaldiscdrive"
         }
     }
 }
@@ -63,6 +71,7 @@ private struct RenderedImages: @unchecked Sendable {
 @MainActor
 public final class WorkspaceViewModel: ObservableObject {
     public let settings: AppSettings
+    public let calibration = CalibrationViewModel()
     private let cliService: CLIService
     private let recentStore: RecentProjectsStore
     private let sessionDirectory: URL
@@ -93,6 +102,7 @@ public final class WorkspaceViewModel: ObservableObject {
     @Published public var alert: AppAlert?
     @Published public private(set) var cliDetection = "Checking…"
     @Published public private(set) var layerAspects: [String: CGSize] = [:]
+    @Published public private(set) var burnArtifactOverride: URL?
     @Published public var isNewProjectPresented = false
     @Published public var newProjectFamily: DiscFamily = .cd
     @Published public var isProjectSettingsPresented = false
@@ -446,6 +456,13 @@ public final class WorkspaceViewModel: ObservableObject {
         settings.previewSize = previewSize
     }
 
+    public func useBurnArtifact(_ url: URL?) {
+        burnArtifactOverride = url
+        if url != nil {
+            workspace = .burn
+        }
+    }
+
     private func recordRecent(_ state: ProjectState, url: URL) {
         let entry = RecentProject(
             name: state.name,
@@ -770,8 +787,8 @@ public final class WorkspaceViewModel: ObservableObject {
                 self.exportLog = "$ \(invocation.displayName) \(arguments.joined(separator: " "))\n"
                 self.exportStatus = "Generating \(saved.family.label) image…"
                 let result = try await self.cliService.run(invocation, arguments: arguments) { chunk in
-                    Task { @MainActor [weak self] in
-                        self?.appendExportLog(chunk)
+                    Task { @MainActor in
+                        self.appendExportLog(chunk)
                     }
                 }
                 self.appendExportLog(result.combinedOutput)

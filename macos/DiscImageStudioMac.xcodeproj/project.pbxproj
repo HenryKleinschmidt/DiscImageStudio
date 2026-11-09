@@ -9,7 +9,9 @@
 /* Begin PBXBuildFile section */
 		037C5CDB1BB911798ABBE2BD /* DiscImageStudioKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 490C060F1D88BDE2EFD6EC67 /* DiscImageStudioKit.framework */; };
 		06EE1317AEEBFA78240FA885 /* DesignRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E16B2B4F6FEB1664B9267EF6 /* DesignRenderer.swift */; };
+		0DDD97D301F623D7239CE66B /* BurnAndCalibrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3D456DC22FBAE130CCEF6FC /* BurnAndCalibrationTests.swift */; };
 		1EC54631ED0D7991D31A76D2 /* ProjectWorkspaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EBAE9EFB0F9BF307C6D6C02 /* ProjectWorkspaceView.swift */; };
+		20B1E18C810ADF85533EDB4E /* BurnViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3D0CB74EFA0885755BE113E /* BurnViewModel.swift */; };
 		21B1BC29212F5C9A65D2BA53 /* NewProjectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 227A2AB1736439BFBFB3CAB9 /* NewProjectView.swift */; };
 		2949FF81FE163BA159AB7A70 /* PresetCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F40BC7D1B47E3F87F981F62 /* PresetCatalog.swift */; };
 		2C54946E9143809A6439DA1D /* ProjectDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D0B1238E0398790AC86324C /* ProjectDocument.swift */; };
@@ -19,23 +21,28 @@
 		3DE23889189186C8D5AE5B5E /* ExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E406A1659F3B50CA209AE60 /* ExportView.swift */; };
 		3F3022FD9F0D54A79F6B4F62 /* PreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566B384D09C35AF2E5F1FD89 /* PreviewView.swift */; };
 		4124BCEF8A1027C83694F2AF /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D629E2D333605B226B3A145A /* RootView.swift */; };
+		432BDF341D0109F2253D86EF /* BurnService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 406185B00B23EFE255B8E5C5 /* BurnService.swift */; };
+		50FA6D5531DE63678529C2FC /* CalibrationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92E2DB90B0B036702BF1988F /* CalibrationViewModel.swift */; };
 		608A2968D26D8A529B0A0FD5 /* DiscImageStudioKitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0C8C2D7649B8F01758A189 /* DiscImageStudioKitTests.swift */; };
 		68E247315E63F8C3F182C7B3 /* DesignInspector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F47CF2F431C32B534E46B6A /* DesignInspector.swift */; };
 		924845EEC71B5A2D43EF2CE2 /* DesignCanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB561A29C47A3CA71EF693D9 /* DesignCanvasView.swift */; };
 		A3106E7FBFA6B23BDED00DDC /* DiscImageStudioKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 490C060F1D88BDE2EFD6EC67 /* DiscImageStudioKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A925BE236E47D85EDE96D33F /* CLIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E788BF7C1C38B54EA7E9C7D /* CLIService.swift */; };
 		B6F3757629E8B2543A114B7E /* DiscImageStudioKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 490C060F1D88BDE2EFD6EC67 /* DiscImageStudioKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		B89FB09AAC7E3A933FE9A6B7 /* CalibrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB7035504F991C3D71640BA9 /* CalibrationView.swift */; };
 		BCA824B1FBB12DB132D4435C /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B446BF27CB6A69724D8A82C /* HomeView.swift */; };
 		BDF755CAF10D69D29DD6AF3F /* built-in-disc-presets.json in Resources */ = {isa = PBXBuildFile; fileRef = AEBA845A8B885C24BF3BDA61 /* built-in-disc-presets.json */; };
 		C13E52D7FC9A42204A081A08 /* ProjectSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 674B181D5014FD3BED196CDD /* ProjectSettingsView.swift */; };
 		CE1AA515FE2C4983B4B21AC4 /* DiscImageStudioMacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2C11144681CEDAE779B219E /* DiscImageStudioMacApp.swift */; };
 		D3E361EA5B1F117F06358C32 /* CLICommandBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5282FD94AF47BCC2BE7C3F87 /* CLICommandBuilder.swift */; };
+		D5F4492B75D3A03C26D2A8A0 /* CalibrationCanvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FC0C37D06F0BB4EE19F00E0 /* CalibrationCanvas.swift */; };
 		D864850CC63208160AE149E3 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 629A5B843821423197DA07C0 /* Theme.swift */; };
 		DB4803AFA54369F491A1825B /* ToneProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DF04BF46DFA3F0AFFA19B11 /* ToneProfile.swift */; };
 		DEBAED0E2AB3EA6798AA0F93 /* DiscImageStudioKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 490C060F1D88BDE2EFD6EC67 /* DiscImageStudioKit.framework */; };
 		E112A3F2C72794A7DD80741D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE50BB3B3ECFC95659338DFE /* SettingsView.swift */; };
 		F26691F393E1690E61C4B38F /* DesignView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B839D5C0D605BB75F75FF9E /* DesignView.swift */; };
 		FAD58E65C0982110F9E5B139 /* WorkspaceViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 540D36FF7A74EE04850B1D9C /* WorkspaceViewModel.swift */; };
+		FDBB14EABFDAC398888B512F /* BurnView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40FF01C0A1E327FB371B2847 /* BurnView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -86,7 +93,10 @@
 		1D0B1238E0398790AC86324C /* ProjectDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectDocument.swift; sourceTree = "<group>"; };
 		227A2AB1736439BFBFB3CAB9 /* NewProjectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewProjectView.swift; sourceTree = "<group>"; };
 		287BF6AADA8D701A51C7E13F /* DiscImageStudioMac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DiscImageStudioMac.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2FC0C37D06F0BB4EE19F00E0 /* CalibrationCanvas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalibrationCanvas.swift; sourceTree = "<group>"; };
 		3F47CF2F431C32B534E46B6A /* DesignInspector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignInspector.swift; sourceTree = "<group>"; };
+		406185B00B23EFE255B8E5C5 /* BurnService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnService.swift; sourceTree = "<group>"; };
+		40FF01C0A1E327FB371B2847 /* BurnView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnView.swift; sourceTree = "<group>"; };
 		490C060F1D88BDE2EFD6EC67 /* DiscImageStudioKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = DiscImageStudioKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E788BF7C1C38B54EA7E9C7D /* CLIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLIService.swift; sourceTree = "<group>"; };
 		4F0C8C2D7649B8F01758A189 /* DiscImageStudioKitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscImageStudioKitTests.swift; sourceTree = "<group>"; };
@@ -100,15 +110,19 @@
 		7C8777D5D9A6897D34D5ABB3 /* DebugSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugSupport.swift; sourceTree = "<group>"; };
 		7E406A1659F3B50CA209AE60 /* ExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportView.swift; sourceTree = "<group>"; };
 		8DF04BF46DFA3F0AFFA19B11 /* ToneProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToneProfile.swift; sourceTree = "<group>"; };
+		92E2DB90B0B036702BF1988F /* CalibrationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalibrationViewModel.swift; sourceTree = "<group>"; };
 		9B839D5C0D605BB75F75FF9E /* DesignView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignView.swift; sourceTree = "<group>"; };
 		A99A9AF008466A0E5D298CDD /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		AE50BB3B3ECFC95659338DFE /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		AEBA845A8B885C24BF3BDA61 /* built-in-disc-presets.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "built-in-disc-presets.json"; sourceTree = "<group>"; };
 		B2C11144681CEDAE779B219E /* DiscImageStudioMacApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscImageStudioMacApp.swift; sourceTree = "<group>"; };
+		B3D0CB74EFA0885755BE113E /* BurnViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnViewModel.swift; sourceTree = "<group>"; };
+		B3D456DC22FBAE130CCEF6FC /* BurnAndCalibrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnAndCalibrationTests.swift; sourceTree = "<group>"; };
 		CB561A29C47A3CA71EF693D9 /* DesignCanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignCanvasView.swift; sourceTree = "<group>"; };
 		CC9D2E265DCA5C3FB24C732B /* ProjectStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectStore.swift; sourceTree = "<group>"; };
 		D629E2D333605B226B3A145A /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		E16B2B4F6FEB1664B9267EF6 /* DesignRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignRenderer.swift; sourceTree = "<group>"; };
+		FB7035504F991C3D71640BA9 /* CalibrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalibrationView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -145,6 +159,8 @@
 		412C2B01D91AB3EA394947FF /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
+				B3D0CB74EFA0885755BE113E /* BurnViewModel.swift */,
+				92E2DB90B0B036702BF1988F /* CalibrationViewModel.swift */,
 				540D36FF7A74EE04850B1D9C /* WorkspaceViewModel.swift */,
 			);
 			path = ViewModels;
@@ -180,6 +196,9 @@
 		C2771E08CEBBED039F1FB8C8 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				40FF01C0A1E327FB371B2847 /* BurnView.swift */,
+				2FC0C37D06F0BB4EE19F00E0 /* CalibrationCanvas.swift */,
+				FB7035504F991C3D71640BA9 /* CalibrationView.swift */,
 				CB561A29C47A3CA71EF693D9 /* DesignCanvasView.swift */,
 				3F47CF2F431C32B534E46B6A /* DesignInspector.swift */,
 				9B839D5C0D605BB75F75FF9E /* DesignView.swift */,
@@ -200,6 +219,7 @@
 			isa = PBXGroup;
 			children = (
 				A99A9AF008466A0E5D298CDD /* AppSettings.swift */,
+				406185B00B23EFE255B8E5C5 /* BurnService.swift */,
 				5282FD94AF47BCC2BE7C3F87 /* CLICommandBuilder.swift */,
 				4E788BF7C1C38B54EA7E9C7D /* CLIService.swift */,
 				7C8777D5D9A6897D34D5ABB3 /* DebugSupport.swift */,
@@ -212,6 +232,7 @@
 		D0DE4B1BD7EECB0B405FA314 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				B3D456DC22FBAE130CCEF6FC /* BurnAndCalibrationTests.swift */,
 				4F0C8C2D7649B8F01758A189 /* DiscImageStudioKitTests.swift */,
 			);
 			path = Tests;
@@ -386,6 +407,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0DDD97D301F623D7239CE66B /* BurnAndCalibrationTests.swift in Sources */,
 				608A2968D26D8A529B0A0FD5 /* DiscImageStudioKitTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -395,8 +417,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				33BFE58005704A6792127D26 /* AppSettings.swift in Sources */,
+				432BDF341D0109F2253D86EF /* BurnService.swift in Sources */,
+				20B1E18C810ADF85533EDB4E /* BurnViewModel.swift in Sources */,
 				D3E361EA5B1F117F06358C32 /* CLICommandBuilder.swift in Sources */,
 				A925BE236E47D85EDE96D33F /* CLIService.swift in Sources */,
+				50FA6D5531DE63678529C2FC /* CalibrationViewModel.swift in Sources */,
 				2DCF8D0E0961D07BDD031510 /* DebugSupport.swift in Sources */,
 				06EE1317AEEBFA78240FA885 /* DesignRenderer.swift in Sources */,
 				2949FF81FE163BA159AB7A70 /* PresetCatalog.swift in Sources */,
@@ -411,6 +436,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FDBB14EABFDAC398888B512F /* BurnView.swift in Sources */,
+				D5F4492B75D3A03C26D2A8A0 /* CalibrationCanvas.swift in Sources */,
+				B89FB09AAC7E3A933FE9A6B7 /* CalibrationView.swift in Sources */,
 				924845EEC71B5A2D43EF2CE2 /* DesignCanvasView.swift in Sources */,
 				68E247315E63F8C3F182C7B3 /* DesignInspector.swift in Sources */,
 				F26691F393E1690E61C4B38F /* DesignView.swift in Sources */,
