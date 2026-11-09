@@ -1,0 +1,118 @@
+name: DiscImageStudioMac
+options:
+  bundleIdPrefix: com.henrykleinschmidt
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGN_IDENTITY: "-"
+    CODE_SIGNING_REQUIRED: NO
+    CODE_SIGNING_ALLOWED: NO
+    ENABLE_HARDENED_RUNTIME: NO
+    DEAD_CODE_STRIPPING: YES
+
+targets:
+  DiscImageStudioKit:
+    type: framework
+    platform: macOS
+    sources:
+      - path: DiscImageStudioMac/Kit
+        excludes:
+          - Resources
+      - path: DiscImageStudioMac/Kit/Resources
+        buildPhase: resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.henrykleinschmidt.DiscImageStudioKit
+        PRODUCT_NAME: DiscImageStudioKit
+        DEFINES_MODULE: YES
+        SKIP_INSTALL: YES
+        GENERATE_INFOPLIST_FILE: YES
+        INSTALL_PATH: "$(LOCAL_LIBRARY_DIR)/Frameworks"
+    postBuildScripts:
+      - name: Verify bundled presets
+        script: |
+          test -f "${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/built-in-disc-presets.json"
+        basedOnDependencyAnalysis: false
+
+  DiscImageStudioMac:
+    type: application
+    platform: macOS
+    sources:
+      - path: DiscImageStudioMac/App
+    resources:
+      - path: DiscImageStudioMac/Resources/Assets.xcassets
+    dependencies:
+      - target: DiscImageStudioKit
+    info:
+      path: DiscImageStudioMac/Resources/Info.plist
+      properties:
+        CFBundleDisplayName: Disc Image Studio
+        CFBundleName: Disc Image Studio
+        CFBundleShortVersionString: "1.0.0"
+        CFBundleVersion: "1"
+        LSMinimumSystemVersion: "14.0"
+        LSApplicationCategoryType: public.app-category.graphics-design
+        NSHighResolutionCapable: true
+        NSHumanReadableCopyright: "GPL-3.0-or-later. Based on DiscImageStudio by JiaFeiMiao-K-Cat."
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: Disc Image Studio Project
+            CFBundleTypeRole: Editor
+            LSHandlerRank: Owner
+            LSItemContentTypes:
+              - com.henrykleinschmidt.discimagestudio.project
+        UTExportedTypeDeclarations:
+          - UTTypeIdentifier: com.henrykleinschmidt.discimagestudio.project
+            UTTypeDescription: Disc Image Studio Project
+            UTTypeConformsTo:
+              - public.data
+              - public.json
+            UTTypeTagSpecification:
+              public.filename-extension:
+                - discproj
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.henrykleinschmidt.DiscImageStudio
+        PRODUCT_NAME: Disc Image Studio
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        GENERATE_INFOPLIST_FILE: NO
+        SWIFT_EMIT_LOC_STRINGS: YES
+        LD_RUNPATH_SEARCH_PATHS:
+          - "$(inherited)"
+          - "@executable_path/../Frameworks"
+
+  DiscImageStudioKitTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: DiscImageStudioMac/Tests
+    dependencies:
+      - target: DiscImageStudioKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.henrykleinschmidt.DiscImageStudioKitTests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: ""
+        BUNDLE_LOADER: ""
+
+schemes:
+  DiscImageStudioMac:
+    build:
+      targets:
+        DiscImageStudioMac: all
+        DiscImageStudioKit: all
+        DiscImageStudioKitTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - DiscImageStudioKitTests
+    archive:
+      config: Release

@@ -39,6 +39,10 @@ Disc Image Studio converts an image into data that meets the physical-layer cons
 
 ![Export: light theme and output image](docs/images/ui-export.png)
 
+## Native macOS Frontend
+
+A native SwiftUI frontend lives in [`macos/`](macos/README.md). It provides the same project workflow (design, preview, export) on macOS 14+, reads and writes `.discproj` schema 2, and drives the cross-platform .NET engine. It can be built as a self-contained app with the engine bundled. See the [macOS README](macos/README.md) for build and verification commands.
+
 ---
 
 ## Quick Start

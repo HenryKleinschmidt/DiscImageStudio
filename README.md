@@ -39,6 +39,10 @@ Disc Image Studio 可将一张图片转换成符合 CD、DVD 与单层 BD-R 光�
 
 ![导出页：浅色主题与输出镜像](docs/images/ui-export.png)
 
+## 原生 macOS 前端
+
+[`macos/`](macos/README.md) 提供了一个原生 SwiftUI 前端，支持 macOS 14 及以上，覆盖设计、预览与导出工作流，读写 `.discproj` schema 2，并通过跨平台 .NET CLI 调用同一套物理编码引擎。构建方式与自包含打包说明见 [macOS README](macos/README.md)。
+
 ---
 
 ## 快速开始

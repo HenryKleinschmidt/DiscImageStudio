@@ -23,3 +23,9 @@ __pycache__/
 *.pfx
 *.p12
 *.key
+
+# macOS frontend
+macos/build/
+macos/**/*.xcuserstate
+macos/**/xcuserdata/
+.DS_Store
